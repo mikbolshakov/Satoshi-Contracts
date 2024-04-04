@@ -4,10 +4,17 @@ pragma solidity 0.8.24;
 import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Pausable.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 
-contract MyToken is ERC20, ERC20Pausable, Ownable, EIP712 {
+contract Runner2060coin is
+    ERC20,
+    ERC20Burnable,
+    ERC20Pausable,
+    AccessControl,
+    EIP712
+{
     struct MintingParams {
         address user;
         uint256 amount;
@@ -21,17 +28,18 @@ contract MyToken is ERC20, ERC20Pausable, Ownable, EIP712 {
     mapping(bytes => bool) verifiedMessages;
     address mintingMaintainer;
 
+    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
+
     event MaintenanceTransferred(address maintainer, address newMaintainer);
 
     constructor(
-        address _initialOwner,
-        address _mintingMaintainerAddress
-    )
-        ERC20("MyToken", "MTK")
-        Ownable(_initialOwner)
-        EIP712("Runner2060", "V1")
-    {
+        address _mintingMaintainerAddress,
+        address defaultAdmin,
+        address admin
+    ) ERC20("Runner2060coin", "SuRun") EIP712("Runner2060coin", "V1") {
         mintingMaintainer = _mintingMaintainerAddress;
+        _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
+        _grantRole(ADMIN_ROLE, admin);
     }
 
     // ------------- Getters ------------- //
@@ -47,17 +55,31 @@ contract MyToken is ERC20, ERC20Pausable, Ownable, EIP712 {
     /// @dev in practice the private key is only known by the backend.
     function setMintingMaintainer(
         address _mintingMaintainer
-    ) external onlyOwner {
+    ) external onlyRole(ADMIN_ROLE) {
         emit MaintenanceTransferred(mintingMaintainer, _mintingMaintainer);
         mintingMaintainer = _mintingMaintainer;
     }
 
-    function pause() public onlyOwner {
+    function pause() external onlyRole(ADMIN_ROLE) {
         _pause();
     }
 
-    function unpause() public onlyOwner {
+    function unpause() external onlyRole(ADMIN_ROLE) {
         _unpause();
+    }
+
+    function mintByAdmin(
+        address _to,
+        uint256 _amount
+    ) external onlyRole(ADMIN_ROLE) {
+        _mint(_to, _amount);
+    }
+
+    function burnByAdmin(
+        address _from,
+        uint256 _amount
+    ) external onlyRole(ADMIN_ROLE) {
+        _burn(_from, _amount);
     }
 
     /// @notice Mint a ERC20 token.
@@ -67,7 +89,7 @@ contract MyToken is ERC20, ERC20Pausable, Ownable, EIP712 {
     function mint(
         bytes calldata _mintingMaintainerSignedMsg,
         MintingParams calldata _mintingParams
-    ) external {
+    ) external onlyRole(ADMIN_ROLE) {
         require(
             !verifiedMessages[_mintingMaintainerSignedMsg],
             "This message has already been executed!"
