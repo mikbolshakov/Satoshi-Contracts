@@ -1,16 +1,17 @@
 {
   "name": "hardhat-project",
   "scripts": {
-    "format": "prettier --write \"**/*.{ts,js}\""
+    "format": "prettier --write \"**/*.{ts,js}\"",
+    "update": "npx hardhat clean && npx hardhat compile"
   },
   "devDependencies": {
-    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@nomicfoundation/hardhat-toolbox": "^2.0.2",
     "hardhat": "^2.22.2",
     "prettier": "^3.2.5"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.0.2",
     "dotenv": "^16.4.5",
-    "eip-712": "^1.0.0"
+    "ethers-eip712": "^0.2.0"
   }
 }

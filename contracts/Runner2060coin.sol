@@ -16,14 +16,13 @@ contract Runner2060coin is
     EIP712
 {
     struct MintingParams {
-        address user;
         uint256 amount;
-        bytes32 hash;
+        uint256 salt;
     }
 
     // EIP712 message type hash.
     bytes32 constant MINT_TYPE_HASH =
-        keccak256("MintingParams(address user,uint256 amount,bytes32 hash)");
+        keccak256("MintingParams(uint256 amount,uint256 salt)");
 
     mapping(bytes => bool) verifiedMessages;
     address mintingMaintainer;
@@ -89,7 +88,7 @@ contract Runner2060coin is
     function mint(
         bytes calldata _mintingMaintainerSignedMsg,
         MintingParams calldata _mintingParams
-    ) external onlyRole(ADMIN_ROLE) {
+    ) external {
         require(
             !verifiedMessages[_mintingMaintainerSignedMsg],
             "This message has already been executed!"
@@ -99,7 +98,7 @@ contract Runner2060coin is
 
         // Hash the message
         bytes32 digest = _hashTypedDataV4(
-            _constructMintingMessage(_mintingParams)
+            keccak256(_constructMintingMessage(_mintingParams))
         );
 
         // Verify the message
@@ -109,24 +108,21 @@ contract Runner2060coin is
             "Maintainer did not sign this message!"
         );
 
-        _mint(_mintingParams.user, _mintingParams.amount);
+        _mint(msg.sender, _mintingParams.amount);
     }
 
-    /// @notice Reconstruct the message with hashing.
+    /// @notice Reconstruct the message without hashing.
     /// @param _mintingParams necessary data for proper message reconstruction.
     /// @return the newly packed message as bytes32.
     /// @dev Follows EIP712 standard.
     function _constructMintingMessage(
         MintingParams calldata _mintingParams
-    ) internal pure returns (bytes32) {
+    ) internal pure returns (bytes memory) {
         return
-            keccak256(
-                abi.encode(
-                    MINT_TYPE_HASH,
-                    _mintingParams.user,
-                    _mintingParams.amount,
-                    _mintingParams.hash
-                )
+            abi.encodePacked(
+                MINT_TYPE_HASH,
+                _mintingParams.amount,
+                _mintingParams.salt
             );
     }
 
