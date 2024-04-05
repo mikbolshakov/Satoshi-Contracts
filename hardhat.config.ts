@@ -1,5 +1,6 @@
 import { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
+import 'solidity-coverage';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -13,7 +14,19 @@ const config: HardhatUserConfig = {
     },
   },
   etherscan: {
-    apiKey: process.env.LINEASCAN_API_KEY as string,
+    apiKey: {
+      linea_goerli: process.env.LINEASCAN_API_KEY as string,
+    },
+    customChains: [
+      {
+        network: 'linea_goerli',
+        chainId: 59140,
+        urls: {
+          apiURL: 'https://api-testnet.lineascan.build/api',
+          browserURL: 'https://goerli.lineascan.build',
+        },
+      },
+    ],
   },
 };
 

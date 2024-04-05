@@ -33,28 +33,126 @@ describe('Runner2060coin tests', async () => {
     tokenContract = runner2060 as Runner2060coin;
   });
 
-  it('mints', async () => {
+  it('Mint tokens by user', async () => {
+    backend = new BackendMock(31337, tokenContract.address, mintMaintainer);
+
+    let mint1 = {
+      amount: 10000,
+      salt: '0x979b141b8bcd3ba17815cd76811f1fca1cabaa9d51f7c00712606970f01d6e37',
+      userAddress: user1.address,
+    };
+
+    let signature = backend.signMintMessage(mint1);
+
+    let mint2 = {
+      amount: 10000,
+      salt: '0x869b141b8bcd3ba17815cd76811f1fca1cabaa9d51f7c00712606970f01d6e26',
+      userAddress: user1.address,
+    };
+
+    await expect(
+      tokenContract.connect(user1).mint(signature, mint2),
+    ).to.be.revertedWith('Maintainer did not sign this message!');
+
+    expect(await tokenContract.balanceOf(user1.address)).to.be.eq(0);
+    await tokenContract.connect(user1).mint(signature, mint1);
+    expect(await tokenContract.balanceOf(user1.address)).to.be.eq(10000);
+
+    await expect(
+      tokenContract.connect(user1).mint(signature, mint1),
+    ).to.be.revertedWith('This message has already been executed!');
+  });
+
+  it('Mint tokens by admin', async () => {
+    const amount = 100;
+
+    expect(tokenContract.connect(user1).mintByAdmin(user2.address, amount)).to
+      .be.revertedWithCustomError; // onlyRole
+
+    expect(await tokenContract.balanceOf(user2.address)).to.be.eq(0);
+    await tokenContract.connect(admin).mintByAdmin(user2.address, amount);
+    expect(await tokenContract.balanceOf(user2.address)).to.be.eq(amount);
+  });
+
+  it('Pause and unpause contract', async () => {
+    const amount = 100;
+
+    expect(tokenContract.connect(user1).pause()).to.be.revertedWithCustomError; // onlyRole
+    await tokenContract.pause();
+
+    await expect(
+      tokenContract.connect(user1).transfer(user2.address, amount),
+    ).to.be.rejectedWith('EnforcedPause()');
+    await expect(
+      tokenContract.connect(admin).mintByAdmin(user2.address, amount),
+    ).to.be.rejectedWith('EnforcedPause()');
+
+    expect(tokenContract.connect(user1).unpause()).to.be
+      .revertedWithCustomError; // onlyRole
+    await tokenContract.unpause();
+
+    expect(await tokenContract.balanceOf(user2.address)).to.be.eq(amount);
+    await tokenContract.connect(admin).mintByAdmin(user2.address, amount);
+    expect(await tokenContract.balanceOf(user2.address)).to.be.eq(amount * 2);
+  });
+
+  it('Burn tokens by user', async () => {
+    const amount = 100;
+
+    expect(await tokenContract.balanceOf(user2.address)).to.be.eq(amount * 2);
+    await tokenContract.connect(user2).burn(amount);
+    expect(await tokenContract.balanceOf(user2.address)).to.be.eq(amount);
+  });
+
+  it('Burn tokens by admin', async () => {
+    const amount = 100;
+
+    expect(tokenContract.connect(user1).burnByAdmin(user2.address, amount)).to
+      .be.revertedWithCustomError; // onlyRole
+
+    expect(await tokenContract.balanceOf(user2.address)).to.be.eq(amount);
+    await tokenContract.connect(admin).burnByAdmin(user2.address, amount);
+    expect(await tokenContract.balanceOf(user2.address)).to.be.eq(0);
+  });
+
+  it('Set mint maintainer', async () => {
+    expect(tokenContract.connect(user1).setMintingMaintainer(user2.address)).to
+      .be.revertedWithCustomError; // onlyRole
+
     expect(await tokenContract.getMintingMaintainer()).to.be.eq(
       mintMaintainer.address,
     );
-    backend = new BackendMock(31337, tokenContract.address, mintMaintainer);
+    await tokenContract.setMintingMaintainer(user2.address);
+    expect(await tokenContract.getMintingMaintainer()).to.be.eq(user2.address);
+  });
 
-    let mint = {
-      amount: 10000,
-      salt: 223,
-    };
+  it('Grant and revoke role', async () => {
+    const adminRole =
+      '0xa49807205ce4d355092ef5a8a18f56e8913cf4a201fbe287825b095693c21775';
 
-    let signature = backend.signMintMessage(mint);
+    expect(
+      await tokenContract.connect(user1).hasRole(adminRole, user1.address),
+    ).to.be.eq(false);
 
-    expect(await tokenContract.balanceOf(user1.address)).to.be.eq(0);
-    await tokenContract.connect(user1).mint(signature, mint);
-    expect(await tokenContract.balanceOf(user1.address)).to.be.eq(10000);
+    expect(tokenContract.connect(user1).grantRole(adminRole, user1.address)).to
+      .be.revertedWithCustomError; // onlyRole
+
+    await tokenContract.grantRole(adminRole, user1.address);
+    expect(
+      await tokenContract.connect(user1).hasRole(adminRole, user1.address),
+    ).to.be.eq(true);
+
+    await tokenContract.revokeRole(adminRole, admin.address);
+    expect(await tokenContract.hasRole(adminRole, admin.address)).to.be.eq(
+      false,
+    );
   });
 });
 
 interface MintInterface {
   amount: number;
-  salt: number;
+  salt: string;
+  userAddress: string;
 }
 
 class BackendMock {
@@ -82,7 +180,7 @@ class BackendMock {
     return Buffer.from(signature.slice(2), 'hex');
   }
 
-  private constructMint({ amount, salt }: MintInterface): string {
+  private constructMint({ amount, salt, userAddress }: MintInterface): string {
     const data = {
       domain: {
         chainId: this.chainId,
@@ -99,13 +197,15 @@ class BackendMock {
         ],
         MintingParams: [
           { name: 'amount', type: 'uint256' },
-          { name: 'salt', type: 'uint256' },
+          { name: 'salt', type: 'bytes32' },
+          { name: 'userAddress', type: 'address' },
         ],
       },
       primaryType: 'MintingParams',
       message: {
         amount: amount,
         salt: salt,
+        userAddress: userAddress,
       },
     };
     const digest = TypedDataUtils.encodeDigest(data);

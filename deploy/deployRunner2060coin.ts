@@ -1,7 +1,7 @@
 import { ethers } from 'hardhat';
 import hre from 'hardhat';
 
-// npx hardhat run deploy/deployRunner2060coin.ts --network chain
+// npx hardhat run deploy/deployRunner2060coin.ts --network linea_goerli
 async function main() {
   const adminAddress = '0x6ae19a226A6Cec3E29D5dfC90C2bd6640d8d77b9';
 

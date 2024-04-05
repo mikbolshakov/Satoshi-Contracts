@@ -15,15 +15,20 @@ contract Runner2060coin is
     AccessControl,
     EIP712
 {
+    // Struct with minting params
     struct MintingParams {
         uint256 amount;
-        uint256 salt;
+        bytes32 salt;
+        address userAddress;
     }
 
     // EIP712 message type hash.
     bytes32 constant MINT_TYPE_HASH =
-        keccak256("MintingParams(uint256 amount,uint256 salt)");
+        keccak256(
+            "MintingParams(uint256 amount,bytes32 salt,address userAddress)"
+        );
 
+    // signed message => bool verified
     mapping(bytes => bool) verifiedMessages;
     address mintingMaintainer;
 
@@ -59,14 +64,21 @@ contract Runner2060coin is
         mintingMaintainer = _mintingMaintainer;
     }
 
+    /// @notice Pauses the contract functionality.
+    /// @dev ERC20Pausable function.
     function pause() external onlyRole(ADMIN_ROLE) {
         _pause();
     }
 
+    /// @notice Unpauses the contract functionality.
+    /// @dev ERC20Pausable function.
     function unpause() external onlyRole(ADMIN_ROLE) {
         _unpause();
     }
 
+    /// @notice Mint a ERC20 token by admin.
+    /// @param _to The address to which the tokens will be minted.
+    /// @param _amount The amount of minted tokens.
     function mintByAdmin(
         address _to,
         uint256 _amount
@@ -74,6 +86,9 @@ contract Runner2060coin is
         _mint(_to, _amount);
     }
 
+    /// @notice Burn a ERC20 token by admin.
+    /// @param _from The address from which the tokens will be burned.
+    /// @param _amount The amount of burned tokens.
     function burnByAdmin(
         address _from,
         uint256 _amount
@@ -81,7 +96,7 @@ contract Runner2060coin is
         _burn(_from, _amount);
     }
 
-    /// @notice Mint a ERC20 token.
+    /// @notice Mint a ERC20 token by user.
     /// @param _mintingMaintainerSignedMsg The message signed by the `mintingMaintainer`.
     /// @param _mintingParams The data used to reconstruct the message, necessary to validate signature.
     /// @dev Using EIP712 signatures.
@@ -108,7 +123,7 @@ contract Runner2060coin is
             "Maintainer did not sign this message!"
         );
 
-        _mint(msg.sender, _mintingParams.amount);
+        _mint(_mintingParams.userAddress, _mintingParams.amount);
     }
 
     /// @notice Reconstruct the message without hashing.
@@ -119,10 +134,11 @@ contract Runner2060coin is
         MintingParams calldata _mintingParams
     ) internal pure returns (bytes memory) {
         return
-            abi.encodePacked(
+            abi.encode(
                 MINT_TYPE_HASH,
                 _mintingParams.amount,
-                _mintingParams.salt
+                _mintingParams.salt,
+                _mintingParams.userAddress
             );
     }
 
