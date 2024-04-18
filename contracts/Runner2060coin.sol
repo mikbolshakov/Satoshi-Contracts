@@ -8,6 +8,8 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Pausable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
+/// @title Runner2060coin
+/// @dev A smart contract for managing ERC20 tokens with minting, burning and pausing functionality.
 contract Runner2060coin is
     ERC20,
     ERC20Burnable,
@@ -15,48 +17,51 @@ contract Runner2060coin is
     AccessControl,
     EIP712
 {
-    // Struct with minting params
+    /// @dev Struct defining minting parameters
     struct MintingParams {
-        uint256 amount;
-        bytes32 salt;
-        address userAddress;
+        address userAddress; // Address to which tokens to mint
+        uint256 amount; // Amount of tokens to mint
+        bytes32 salt; // Salt value for uniqueness
     }
 
-    // EIP712 message type hash.
+    // EIP712 message type hash for single token minting
     bytes32 constant MINT_TYPE_HASH =
         keccak256(
-            "MintingParams(uint256 amount,bytes32 salt,address userAddress)"
+            "MintingParams(address userAddress,uint256 amount,bytes32 salt)"
         );
 
     // signed message => bool verified
     mapping(bytes => bool) verifiedMessages;
     address mintingMaintainer;
 
+    // Role for admin access
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
     event MaintenanceTransferred(address maintainer, address newMaintainer);
 
+    /// @notice Constructor to initialize the contract.
+    /// @param _mintingMaintainerAddress Address of the minting maintainer.
+    /// @param _defaultAdmin Address of the default admin.
     constructor(
         address _mintingMaintainerAddress,
-        address defaultAdmin,
-        address admin
+        address _defaultAdmin
     ) ERC20("Runner2060coin", "SuRun") EIP712("Runner2060coin", "V1") {
         mintingMaintainer = _mintingMaintainerAddress;
-        _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
-        _grantRole(ADMIN_ROLE, admin);
+        _grantRole(DEFAULT_ADMIN_ROLE, _defaultAdmin);
+        _grantRole(ADMIN_ROLE, _defaultAdmin);
     }
 
     // ------------- Getters ------------- //
-    /// @notice Get the mintingMaintainer address.
-    /// @return the mintingMaintainer address.
+    /// @notice Get the address of the minting maintainer.
+    /// @return Address of the minting maintainer.
     function getMintingMaintainer() external view returns (address) {
         return mintingMaintainer;
     }
 
     // ------------- Setters ------------- //
-    /// @notice Set the mintingMaintainer that will have the authority to sign mint messages.
-    /// @param _mintingMaintainer New mintingMaintainer address.
-    /// @dev in practice the private key is only known by the backend.
+    /// @notice Set the mintingMaintainer address that will have the authority to sign mint messages.
+    /// @param _mintingMaintainer Address of the new minting maintainer.
+    /// @dev The private key is only known by the backend.
     function setMintingMaintainer(
         address _mintingMaintainer
     ) external onlyRole(ADMIN_ROLE) {
@@ -64,21 +69,21 @@ contract Runner2060coin is
         mintingMaintainer = _mintingMaintainer;
     }
 
-    /// @notice Pauses the contract functionality.
+    /// @notice Pause the contract functionality.
     /// @dev ERC20Pausable function.
     function pause() external onlyRole(ADMIN_ROLE) {
         _pause();
     }
 
-    /// @notice Unpauses the contract functionality.
+    /// @notice Unpause the contract functionality.
     /// @dev ERC20Pausable function.
     function unpause() external onlyRole(ADMIN_ROLE) {
         _unpause();
     }
 
-    /// @notice Mint a ERC20 token by admin.
-    /// @param _to The address to which the tokens will be minted.
-    /// @param _amount The amount of minted tokens.
+    /// @notice Mint ERC20 tokens by admin.
+    /// @param _to Address to which tokens are minted.
+    /// @param _amount Amount of tokens to mint.
     function mintByAdmin(
         address _to,
         uint256 _amount
@@ -86,9 +91,9 @@ contract Runner2060coin is
         _mint(_to, _amount);
     }
 
-    /// @notice Burn a ERC20 token by admin.
-    /// @param _from The address from which the tokens will be burned.
-    /// @param _amount The amount of burned tokens.
+    /// @notice Burn ERC20 tokens by admin.
+    /// @param _from Address from which tokens to burn.
+    /// @param _amount Amount of tokens to burn.
     function burnByAdmin(
         address _from,
         uint256 _amount
@@ -98,7 +103,8 @@ contract Runner2060coin is
 
     /// @notice Mint a ERC20 token by user.
     /// @param _mintingMaintainerSignedMsg The message signed by the `mintingMaintainer`.
-    /// @param _mintingParams The data used to reconstruct the message, necessary to validate signature.
+    /// @param _mintingParams Minting parameters used to reconstruct the message, necessary to validate signature.
+    /// @dev _mintingMaintainerSignedMsg is taken from the backend.
     /// @dev Using EIP712 signatures.
     function mint(
         bytes calldata _mintingMaintainerSignedMsg,
@@ -126,9 +132,10 @@ contract Runner2060coin is
         _mint(_mintingParams.userAddress, _mintingParams.amount);
     }
 
-    /// @notice Reconstruct the message without hashing.
-    /// @param _mintingParams necessary data for proper message reconstruction.
-    /// @return the newly packed message as bytes32.
+    // ------------- Internal ------------- //
+    /// @notice Reconstruct the mint message without hashing.
+    /// @param _mintingParams Necessary data for proper message reconstruction.
+    /// @return The newly packed message as bytes.
     /// @dev Follows EIP712 standard.
     function _constructMintingMessage(
         MintingParams calldata _mintingParams
@@ -136,14 +143,14 @@ contract Runner2060coin is
         return
             abi.encode(
                 MINT_TYPE_HASH,
+                _mintingParams.userAddress,
                 _mintingParams.amount,
-                _mintingParams.salt,
-                _mintingParams.userAddress
+                _mintingParams.salt
             );
     }
 
     // The following functions are overrides required by Solidity.
-
+    /// @inheritdoc ERC20
     function _update(
         address from,
         address to,

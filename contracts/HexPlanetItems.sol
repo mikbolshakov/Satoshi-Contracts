@@ -10,9 +10,9 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
-/// @title Runner2060rewards
+/// @title HexPlanetItems
 /// @dev A smart contract for managing ERC1155 tokens with minting, pausing and supply control functionality.
-contract Runner2060rewards is
+contract HexPlanetItems is
     ERC1155,
     AccessControl,
     ERC1155Pausable,
@@ -62,17 +62,17 @@ contract Runner2060rewards is
 
     event MaintenanceTransferred(address maintainer, address newMaintainer);
 
-    /// @dev Constructor to initialize the contract
-    /// @param _mintingMaintainerAddress Address of the minting maintainer
-    /// @param _royaltyReceiver Address of the royalty receiver
-    /// @param _feeNumerator Numerator of the royalty fee
-    /// @param _defaultAdmin Address of the default admin
+    /// @notice Constructor to initialize the contract.
+    /// @param _mintingMaintainerAddress Address of the minting maintainer.
+    /// @param _royaltyReceiver Address of the royalty receiver.
+    /// @param _feeNumerator Numerator of the royalty fee.
+    /// @param _defaultAdmin Address of the default admin.
     constructor(
         address _mintingMaintainerAddress,
         address _royaltyReceiver,
         uint96 _feeNumerator,
         address _defaultAdmin
-    ) ERC1155("") EIP712("Runner2060rewards", "V1") {
+    ) ERC1155("") EIP712("HexPlanetItems", "V1") {
         mintingMaintainer = _mintingMaintainerAddress;
         _setDefaultRoyalty(_royaltyReceiver, _feeNumerator);
         _grantRole(DEFAULT_ADMIN_ROLE, _defaultAdmin);
@@ -82,14 +82,14 @@ contract Runner2060rewards is
     }
 
     // ------------- Getters ------------- //
-    /// @notice Get the address of the minting maintainer
-    /// @return Address of the minting maintainer
+    /// @notice Get the address of the minting maintainer.
+    /// @return Address of the minting maintainer.
     function getMintingMaintainer() external view returns (address) {
         return mintingMaintainer;
     }
 
-    /// @notice Get the count of unique items
-    /// @return Count of unique items
+    /// @notice Get the count of unique items.
+    /// @return Count of unique items.
     function getUniqueItemsCount() external view returns (uint256) {
         return uniqueItemsCount;
     }
@@ -101,9 +101,9 @@ contract Runner2060rewards is
         return maxSupply[_tokenId];
     }
 
-    /// @notice Get the URI of a token
-    /// @param _tokenId ID of the token
-    /// @return URI of the token
+    /// @notice Get the URI of a token.
+    /// @param _tokenId ID of the token.
+    /// @return URI of the token.
     function uri(
         uint256 _tokenId
     ) public view override returns (string memory) {
@@ -115,7 +115,7 @@ contract Runner2060rewards is
 
     // ------------- Setters ------------- //
     /// @notice Set the mintingMaintainer address that will have the authority to sign mint messages.
-    /// @param _mintingMaintainer Address of the new minting maintainer
+    /// @param _mintingMaintainer Address of the new minting maintainer.
     /// @dev The private key is only known by the backend.
     function setMintingMaintainer(
         address _mintingMaintainer
@@ -131,8 +131,8 @@ contract Runner2060rewards is
     }
 
     /// @notice Set the maximum supply for a given token ID.
-    /// @param _tokenId ID of the token
-    /// @param _supply Maximum supply of the token
+    /// @param _tokenId ID of the token.
+    /// @param _supply Maximum supply of the token.
     function setMaxSupply(
         uint256 _tokenId,
         uint256 _supply
@@ -140,7 +140,7 @@ contract Runner2060rewards is
         maxSupply[_tokenId] = _supply;
     }
 
-    /// @notice Increment the count of unique items
+    /// @notice Increment the count of unique items.
     function incrementUniqueItemsCount() external onlyRole(TOKEN_ADMIN_ROLE) {
         uniqueItemsCount++;
     }
@@ -159,8 +159,9 @@ contract Runner2060rewards is
 
     /// @notice Mint a single token.
     /// @param _mintingMaintainerSignedMsg Signed message from the minting maintainer.
-    /// @param _mintingParams Minting parameters.
+    /// @param _mintingParams Minting parameters used to reconstruct the message, necessary to validate signature.
     /// @dev _mintingMaintainerSignedMsg is taken from the backend.
+    /// @dev Using EIP712 signatures.
     function mint(
         bytes calldata _mintingMaintainerSignedMsg,
         MintingParams calldata _mintingParams
@@ -197,8 +198,9 @@ contract Runner2060rewards is
 
     /// @notice Mint multiple tokens in a single transaction.
     /// @param _mintingMaintainerSignedMsg Signed message from the minting maintainer.
-    /// @param _mintingParams Batch minting parameters.
+    /// @param _mintingParams Batch minting parameters used to reconstruct the message, necessary to validate signature.
     /// @dev _mintingMaintainerSignedMsg is taken from the backend.
+    /// @dev Using EIP712 signatures.
     function mintBatch(
         bytes calldata _mintingMaintainerSignedMsg,
         BatchMintingParams calldata _mintingParams

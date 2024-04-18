@@ -11,6 +11,12 @@
         "tabWidth": 4,
         "singleQuote": false
       }
+    },
+    {
+      "files": "test/**",
+      "options": {
+        "printWidth": 100
+      }
     }
   ]
 }

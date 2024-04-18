@@ -1,12 +1,12 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { Runner2060rewards } from '../typechain-types';
+import { HexPlanetItems } from '../typechain-types';
 import { Wallet } from 'ethers';
 import { joinSignature } from 'ethers/lib/utils';
 import { TypedDataUtils } from 'ethers-eip712';
 
-describe('Runner2060rewards tests', () => {
+describe('HexPlanetItems tests', () => {
   const fee = 750;
   const zeroAmount = 0;
   const tokenAmount = 10;
@@ -16,7 +16,7 @@ describe('Runner2060rewards tests', () => {
   const secondTokenId = 2;
   const thirdTokenId = 3;
 
-  let nftContract: Runner2060rewards;
+  let nftContract: HexPlanetItems;
   let mintMaintainer: Wallet;
   let signers: SignerWithAddress[];
   let admin: SignerWithAddress;
@@ -34,16 +34,16 @@ describe('Runner2060rewards tests', () => {
   });
 
   it('Deploy contract', async () => {
-    const Factory = await ethers.getContractFactory('Runner2060rewards');
-    const runner2060 = await Factory.deploy(
+    const Factory = await ethers.getContractFactory('HexPlanetItems');
+    const hexItems = await Factory.deploy(
       mintMaintainer.address,
       admin.address,
       fee,
       admin.address,
     );
 
-    expect(runner2060.address).to.not.eq(ethers.constants.AddressZero);
-    nftContract = runner2060 as Runner2060rewards;
+    expect(hexItems.address).to.not.eq(ethers.constants.AddressZero);
+    nftContract = hexItems as HexPlanetItems;
 
     const ERC2981 = '0x2a55205a';
     expect(await nftContract.supportsInterface(ERC2981)).to.equal(true);
@@ -297,7 +297,7 @@ interface BatchMintInterface {
 
 class BackendMock {
   /// The EIP-712 domain name used for computing the domain separator.
-  DOMAIN_NAME = 'Runner2060rewards';
+  DOMAIN_NAME = 'HexPlanetItems';
   /// The EIP-712 domain version used for computing the domain separator.
   DOMAIN_VERSION = 'V1';
 

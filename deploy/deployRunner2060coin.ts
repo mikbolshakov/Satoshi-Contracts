@@ -6,11 +6,7 @@ async function main() {
   const adminAddress = '0x6ae19a226A6Cec3E29D5dfC90C2bd6640d8d77b9';
 
   const Runner2060 = await ethers.getContractFactory('Runner2060coin');
-  const runner2060 = await Runner2060.deploy(
-    adminAddress,
-    adminAddress,
-    adminAddress,
-  );
+  const runner2060 = await Runner2060.deploy(adminAddress, adminAddress);
 
   await runner2060.deployed();
   console.log(`Runner2060coin deployed to ${runner2060.address}`);
@@ -19,7 +15,7 @@ async function main() {
 
   await hre.run('verify:verify', {
     address: runner2060.address,
-    constructorArguments: [adminAddress, adminAddress, adminAddress],
+    constructorArguments: [adminAddress, adminAddress],
     contract: 'contracts/Runner2060coin.sol:Runner2060coin',
   });
 }
