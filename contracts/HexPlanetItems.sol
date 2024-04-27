@@ -54,11 +54,13 @@ contract HexPlanetItems is
     address mintingMaintainer;
     uint256 uniqueItemsCount;
     string _baseURI;
+    string _baseExtension = ".json";
 
     // Role constants
     bytes32 public constant PAUSE_ROLE = keccak256("PAUSE_ROLE");
     bytes32 public constant MAINTAINER_ROLE = keccak256("MAINTAINER_ROLE");
     bytes32 public constant TOKEN_ADMIN_ROLE = keccak256("TOKEN_ADMIN_ROLE");
+    bytes32 public constant URI_SETTER_ROLE = keccak256("URI_SETTER_ROLE");
 
     event MaintenanceTransferred(address maintainer, address newMaintainer);
 
@@ -79,6 +81,7 @@ contract HexPlanetItems is
         _grantRole(PAUSE_ROLE, _defaultAdmin);
         _grantRole(MAINTAINER_ROLE, _defaultAdmin);
         _grantRole(TOKEN_ADMIN_ROLE, _defaultAdmin);
+        _grantRole(URI_SETTER_ROLE, _defaultAdmin);
     }
 
     // ------------- Getters ------------- //
@@ -110,7 +113,8 @@ contract HexPlanetItems is
         require(_tokenId <= uniqueItemsCount, "Token id doesn't exist");
 
         string memory base = _baseURI;
-        return string(abi.encodePacked(base, _tokenId.toString()));
+        string memory extension = _baseExtension;
+        return string(abi.encodePacked(base, _tokenId.toString(), extension));
     }
 
     // ------------- Setters ------------- //

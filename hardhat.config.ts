@@ -6,24 +6,23 @@ dotenv.config();
 
 const config: HardhatUserConfig = {
   solidity: '0.8.24',
-
   networks: {
-    linea_goerli: {
-      url: process.env.LINEA_GOERLI as string,
-      accounts: [process.env.ADMIN_PRIVATE_KEY as string],
+    linea_sepolia: {
+      url: process.env.LINEA_SEPOLIA as string,
+      accounts: [process.env.LINEA_SEPOLIA_ADMIN_PRIVATE_KEY as string],
     },
   },
   etherscan: {
     apiKey: {
-      linea_goerli: process.env.LINEASCAN_API_KEY as string,
+      linea_sepolia: process.env.LINEASCAN_API_KEY as string,
     },
     customChains: [
       {
-        network: 'linea_goerli',
-        chainId: 59140,
+        network: "linea_sepolia",
+        chainId: 59141,
         urls: {
-          apiURL: 'https://api-testnet.lineascan.build/api',
-          browserURL: 'https://goerli.lineascan.build',
+          apiURL: "https://api-sepolia.lineascan.build/api",
+          browserURL: "https://sepolia.lineascan.build",
         },
       },
     ],

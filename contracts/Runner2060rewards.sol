@@ -54,19 +54,21 @@ contract Runner2060rewards is
     address mintingMaintainer;
     uint256 uniqueItemsCount;
     string _baseURI;
+    string _baseExtension = ".json";
 
     // Role constants
     bytes32 public constant PAUSE_ROLE = keccak256("PAUSE_ROLE");
     bytes32 public constant MAINTAINER_ROLE = keccak256("MAINTAINER_ROLE");
     bytes32 public constant TOKEN_ADMIN_ROLE = keccak256("TOKEN_ADMIN_ROLE");
+    bytes32 public constant URI_SETTER_ROLE = keccak256("URI_SETTER_ROLE");
 
     event MaintenanceTransferred(address maintainer, address newMaintainer);
 
-    /// @dev Constructor to initialize the contract
-    /// @param _mintingMaintainerAddress Address of the minting maintainer
-    /// @param _royaltyReceiver Address of the royalty receiver
-    /// @param _feeNumerator Numerator of the royalty fee
-    /// @param _defaultAdmin Address of the default admin
+    /// @notice Constructor to initialize the contract.
+    /// @param _mintingMaintainerAddress Address of the minting maintainer.
+    /// @param _royaltyReceiver Address of the royalty receiver.
+    /// @param _feeNumerator Numerator of the royalty fee.
+    /// @param _defaultAdmin Address of the default admin.
     constructor(
         address _mintingMaintainerAddress,
         address _royaltyReceiver,
@@ -79,17 +81,18 @@ contract Runner2060rewards is
         _grantRole(PAUSE_ROLE, _defaultAdmin);
         _grantRole(MAINTAINER_ROLE, _defaultAdmin);
         _grantRole(TOKEN_ADMIN_ROLE, _defaultAdmin);
+        _grantRole(URI_SETTER_ROLE, _defaultAdmin);
     }
 
     // ------------- Getters ------------- //
-    /// @notice Get the address of the minting maintainer
-    /// @return Address of the minting maintainer
+    /// @notice Get the address of the minting maintainer.
+    /// @return Address of the minting maintainer.
     function getMintingMaintainer() external view returns (address) {
         return mintingMaintainer;
     }
 
-    /// @notice Get the count of unique items
-    /// @return Count of unique items
+    /// @notice Get the count of unique items.
+    /// @return Count of unique items.
     function getUniqueItemsCount() external view returns (uint256) {
         return uniqueItemsCount;
     }
@@ -101,21 +104,22 @@ contract Runner2060rewards is
         return maxSupply[_tokenId];
     }
 
-    /// @notice Get the URI of a token
-    /// @param _tokenId ID of the token
-    /// @return URI of the token
+    /// @notice Get the URI of a token.
+    /// @param _tokenId ID of the token.
+    /// @return URI of the token.
     function uri(
         uint256 _tokenId
     ) public view override returns (string memory) {
         require(_tokenId <= uniqueItemsCount, "Token id doesn't exist");
 
         string memory base = _baseURI;
-        return string(abi.encodePacked(base, _tokenId.toString()));
+        string memory extension = _baseExtension;
+        return string(abi.encodePacked(base, _tokenId.toString(), extension));
     }
 
     // ------------- Setters ------------- //
     /// @notice Set the mintingMaintainer address that will have the authority to sign mint messages.
-    /// @param _mintingMaintainer Address of the new minting maintainer
+    /// @param _mintingMaintainer Address of the new minting maintainer.
     /// @dev The private key is only known by the backend.
     function setMintingMaintainer(
         address _mintingMaintainer
@@ -131,8 +135,8 @@ contract Runner2060rewards is
     }
 
     /// @notice Set the maximum supply for a given token ID.
-    /// @param _tokenId ID of the token
-    /// @param _supply Maximum supply of the token
+    /// @param _tokenId ID of the token.
+    /// @param _supply Maximum supply of the token.
     function setMaxSupply(
         uint256 _tokenId,
         uint256 _supply
@@ -140,7 +144,7 @@ contract Runner2060rewards is
         maxSupply[_tokenId] = _supply;
     }
 
-    /// @notice Increment the count of unique items
+    /// @notice Increment the count of unique items.
     function incrementUniqueItemsCount() external onlyRole(TOKEN_ADMIN_ROLE) {
         uniqueItemsCount++;
     }
@@ -159,8 +163,9 @@ contract Runner2060rewards is
 
     /// @notice Mint a single token.
     /// @param _mintingMaintainerSignedMsg Signed message from the minting maintainer.
-    /// @param _mintingParams Minting parameters.
+    /// @param _mintingParams Minting parameters used to reconstruct the message, necessary to validate signature.
     /// @dev _mintingMaintainerSignedMsg is taken from the backend.
+    /// @dev Using EIP712 signatures.
     function mint(
         bytes calldata _mintingMaintainerSignedMsg,
         MintingParams calldata _mintingParams
@@ -197,8 +202,9 @@ contract Runner2060rewards is
 
     /// @notice Mint multiple tokens in a single transaction.
     /// @param _mintingMaintainerSignedMsg Signed message from the minting maintainer.
-    /// @param _mintingParams Batch minting parameters.
+    /// @param _mintingParams Batch minting parameters used to reconstruct the message, necessary to validate signature.
     /// @dev _mintingMaintainerSignedMsg is taken from the backend.
+    /// @dev Using EIP712 signatures.
     function mintBatch(
         bytes calldata _mintingMaintainerSignedMsg,
         BatchMintingParams calldata _mintingParams

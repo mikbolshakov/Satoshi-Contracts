@@ -62,7 +62,7 @@ describe('Runner2060rewards tests', () => {
 
     expect(await nftContract.getUniqueItemsCount()).to.eq(zeroAmount);
     expect(await nftContract.uri(zeroTokenId)).to.be.eq(
-      'ipfs://QmU48M65weZGtmVUBVbj1hgfnozAsSgoKhgZ3NyGK24pMB/0',
+      'ipfs://QmU48M65weZGtmVUBVbj1hgfnozAsSgoKhgZ3NyGK24pMB/0.json',
     );
 
     await expect(nftContract.uri(firstTokenId)).to.be.revertedWith("Token id doesn't exist");
@@ -72,7 +72,7 @@ describe('Runner2060rewards tests', () => {
 
     expect(await nftContract.getUniqueItemsCount()).to.eq(1);
     expect(await nftContract.uri(firstTokenId)).to.be.eq(
-      'ipfs://QmU48M65weZGtmVUBVbj1hgfnozAsSgoKhgZ3NyGK24pMB/1',
+      'ipfs://QmU48M65weZGtmVUBVbj1hgfnozAsSgoKhgZ3NyGK24pMB/1.json',
     );
 
     backend = new BackendMock(31337, nftContract.address, mintMaintainer);
@@ -141,7 +141,7 @@ describe('Runner2060rewards tests', () => {
 
     expect(await nftContract.balanceOf(user1.address, zeroTokenId)).to.be.eq(tokenAmount);
     expect(await nftContract.uri(zeroTokenId)).to.be.eq(
-      'ipfs://QmU48M65weZGtmVUBVbj1hgfnozAsSgoKhgZ3NyGK24pMB/0',
+      'ipfs://QmU48M65weZGtmVUBVbj1hgfnozAsSgoKhgZ3NyGK24pMB/0.json',
     );
 
     await expect(nftContract.connect(user1).mint(signatureOne, mintOne)).to.be.revertedWith(
@@ -249,10 +249,10 @@ describe('Runner2060rewards tests', () => {
     );
 
     expect(await nftContract.uri(firstTokenId)).to.be.eq(
-      'ipfs://QmU48M65weZGtmVUBVbj1hgfnozAsSgoKhgZ3NyGK24pMB/1',
+      'ipfs://QmU48M65weZGtmVUBVbj1hgfnozAsSgoKhgZ3NyGK24pMB/1.json',
     );
     expect(await nftContract.uri(secondTokenId)).to.be.eq(
-      'ipfs://QmU48M65weZGtmVUBVbj1hgfnozAsSgoKhgZ3NyGK24pMB/2',
+      'ipfs://QmU48M65weZGtmVUBVbj1hgfnozAsSgoKhgZ3NyGK24pMB/2.json',
     );
   });
 

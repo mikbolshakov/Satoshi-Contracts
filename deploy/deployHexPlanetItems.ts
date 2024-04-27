@@ -1,7 +1,7 @@
 import { ethers } from 'hardhat';
 import hre from 'hardhat';
 
-// npx hardhat run deploy/deployHexPlanetItems.ts --network linea_goerli
+// npx hardhat run deploy/deployHexPlanetItems.ts --network linea_sepolia
 async function main() {
   const adminAddress = '0x6ae19a226A6Cec3E29D5dfC90C2bd6640d8d77b9';
   const feeNumerator = 500;
