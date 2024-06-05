@@ -283,12 +283,16 @@ describe('RunnerOmni tests', async () => {
     expect(await erc20Linea.balanceOf(user10.address)).to.be.eq(thousandTokens.sub(hundredTokens));
     expect(await erc20Scroll.balanceOf(user10.address)).to.be.eq(hundredTokens);
 
-    expect(await erc20Linea.totalSupply()).to.be.eq(thousandTokens.mul(2).sub(hundredTokens.mul(2)));
+    expect(await erc20Linea.totalSupply()).to.be.eq(
+      thousandTokens.mul(2).sub(hundredTokens.mul(2)),
+    );
     expect(await erc20Scroll.totalSupply()).to.be.eq(hundredTokens.mul(2));
   });
 
   it('Send tokens from Linea to Scroll (user10 => user20)', async () => {
-    expect(await erc20Linea.totalSupply()).to.be.eq(thousandTokens.mul(2).sub(hundredTokens.mul(2)));
+    expect(await erc20Linea.totalSupply()).to.be.eq(
+      thousandTokens.mul(2).sub(hundredTokens.mul(2)),
+    );
     expect(await erc20Scroll.totalSupply()).to.be.eq(hundredTokens.mul(2));
 
     expect(await erc20Linea.balanceOf(user10.address)).to.be.eq(thousandTokens.sub(hundredTokens));
@@ -321,12 +325,16 @@ describe('RunnerOmni tests', async () => {
     );
     expect(await erc20Scroll.balanceOf(user20.address)).to.be.eq(hundredTokens);
 
-    expect(await erc20Linea.totalSupply()).to.be.eq(thousandTokens.mul(2).sub(hundredTokens.mul(3)));
+    expect(await erc20Linea.totalSupply()).to.be.eq(
+      thousandTokens.mul(2).sub(hundredTokens.mul(3)),
+    );
     expect(await erc20Scroll.totalSupply()).to.be.eq(hundredTokens.mul(3));
   });
 
   it('Send tokens from Scroll to Linea (user20 => user10)', async () => {
-    expect(await erc20Linea.totalSupply()).to.be.eq(thousandTokens.mul(2).sub(hundredTokens.mul(3)));
+    expect(await erc20Linea.totalSupply()).to.be.eq(
+      thousandTokens.mul(2).sub(hundredTokens.mul(3)),
+    );
     expect(await erc20Scroll.totalSupply()).to.be.eq(hundredTokens.mul(3));
 
     expect(await erc20Linea.balanceOf(user10.address)).to.be.eq(
@@ -359,7 +367,9 @@ describe('RunnerOmni tests', async () => {
     expect(await erc20Linea.balanceOf(user10.address)).to.be.eq(thousandTokens.sub(hundredTokens));
     expect(await erc20Scroll.balanceOf(user20.address)).to.be.eq(zeroAmount);
 
-    expect(await erc20Linea.totalSupply()).to.be.eq(thousandTokens.mul(2).sub(hundredTokens.mul(2)));
+    expect(await erc20Linea.totalSupply()).to.be.eq(
+      thousandTokens.mul(2).sub(hundredTokens.mul(2)),
+    );
     expect(await erc20Scroll.totalSupply()).to.be.eq(hundredTokens.mul(2));
   });
 

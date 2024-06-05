@@ -26,7 +26,7 @@ const config: HardhatUserConfig = {
       accounts: [process.env.LINEA_SEPOLIA_ADMIN_PRIVATE_KEY as string],
     },
     scroll_sepolia: {
-      url: 'https://sepolia-rpc.scroll.io/',
+      url: process.env.SCROLL_SEPOLIA as string,
       accounts: [process.env.LINEA_SEPOLIA_ADMIN_PRIVATE_KEY as string],
     },
   },

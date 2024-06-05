@@ -6,7 +6,6 @@ async function main() {
   const adminAddress = '0x6ae19a226A6Cec3E29D5dfC90C2bd6640d8d77b9';
   const scrollAndLineaEndpointTestnet =
     '0x6EDCE65403992e310A62460808c4b910D972f10f';
-    
 
   const Runner2060 = await ethers.getContractFactory('RunnerOmni');
   const runner2060 = await Runner2060.deploy(
