@@ -21,12 +21,7 @@ async function main() {
 
   await hre.run('verify:verify', {
     address: runner2060.address,
-    constructorArguments: [
-      adminAddress,
-      adminAddress,
-      feeNumerator,
-      adminAddress,
-    ],
+    constructorArguments: [adminAddress, adminAddress, feeNumerator, adminAddress],
     contract: 'contracts/Runner2060rewards.sol:Runner2060rewards',
   });
 }

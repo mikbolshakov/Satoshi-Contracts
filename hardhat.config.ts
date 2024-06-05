@@ -3,6 +3,7 @@ import '@nomicfoundation/hardhat-toolbox';
 import '@layerzerolabs/toolbox-hardhat';
 import 'solidity-coverage';
 import 'hardhat-deploy';
+import { EndpointId } from '@layerzerolabs/lz-definitions';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -22,12 +23,14 @@ const config: HardhatUserConfig = {
   },
   networks: {
     linea_sepolia: {
+      eid: EndpointId.LINEASEP_V2_TESTNET,
       url: process.env.LINEA_SEPOLIA as string,
-      accounts: [process.env.LINEA_SEPOLIA_ADMIN_PRIVATE_KEY as string],
+      accounts: [process.env.ADMIN_PRIVATE_KEY as string],
     },
     scroll_sepolia: {
+      eid: EndpointId.SCROLL_V2_TESTNET,
       url: process.env.SCROLL_SEPOLIA as string,
-      accounts: [process.env.LINEA_SEPOLIA_ADMIN_PRIVATE_KEY as string],
+      accounts: [process.env.ADMIN_PRIVATE_KEY as string],
     },
   },
   etherscan: {
@@ -53,6 +56,11 @@ const config: HardhatUserConfig = {
         },
       },
     ],
+  },
+  namedAccounts: {
+    deployer: {
+      default: 0, // wallet address of index[0], of the mnemonic in .env
+    },
   },
 };
 
