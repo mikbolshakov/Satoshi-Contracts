@@ -10,13 +10,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 
 /// @title Runner2060coin
 /// @dev A smart contract for managing ERC20 tokens with minting, burning and pausing functionality.
-contract Runner2060coin is
-    ERC20,
-    ERC20Burnable,
-    ERC20Pausable,
-    AccessControl,
-    EIP712
-{
+contract Runner2060coin is ERC20, ERC20Burnable, ERC20Pausable, AccessControl, EIP712 {
     /// @dev Struct defining minting parameters
     struct MintingParams {
         address userAddress; // Address to which tokens to mint
@@ -26,9 +20,7 @@ contract Runner2060coin is
 
     // EIP712 message type hash for single token minting
     bytes32 constant MINT_TYPE_HASH =
-        keccak256(
-            "MintingParams(address userAddress,uint256 amount,bytes32 salt)"
-        );
+        keccak256("MintingParams(address userAddress,uint256 amount,bytes32 salt)");
 
     // signed message => bool verified
     mapping(bytes => bool) verifiedMessages;
@@ -62,9 +54,7 @@ contract Runner2060coin is
     /// @notice Set the mintingMaintainer address that will have the authority to sign mint messages.
     /// @param _mintingMaintainer Address of the new minting maintainer.
     /// @dev The private key is only known by the backend.
-    function setMintingMaintainer(
-        address _mintingMaintainer
-    ) external onlyRole(ADMIN_ROLE) {
+    function setMintingMaintainer(address _mintingMaintainer) external onlyRole(ADMIN_ROLE) {
         emit MaintenanceTransferred(mintingMaintainer, _mintingMaintainer);
         mintingMaintainer = _mintingMaintainer;
     }
@@ -84,20 +74,14 @@ contract Runner2060coin is
     /// @notice Mint ERC20 tokens by admin.
     /// @param _to Address to which tokens are minted.
     /// @param _amount Amount of tokens to mint.
-    function mintByAdmin(
-        address _to,
-        uint256 _amount
-    ) external onlyRole(ADMIN_ROLE) {
+    function mintByAdmin(address _to, uint256 _amount) external onlyRole(ADMIN_ROLE) {
         _mint(_to, _amount);
     }
 
     /// @notice Burn ERC20 tokens by admin.
     /// @param _from Address from which tokens to burn.
     /// @param _amount Amount of tokens to burn.
-    function burnByAdmin(
-        address _from,
-        uint256 _amount
-    ) external onlyRole(ADMIN_ROLE) {
+    function burnByAdmin(address _from, uint256 _amount) external onlyRole(ADMIN_ROLE) {
         _burn(_from, _amount);
     }
 
@@ -118,14 +102,11 @@ contract Runner2060coin is
         verifiedMessages[_mintingMaintainerSignedMsg] = true;
 
         // Hash the message
-        bytes32 digest = _hashTypedDataV4(
-            keccak256(_constructMintingMessage(_mintingParams))
-        );
+        bytes32 digest = _hashTypedDataV4(keccak256(_constructMintingMessage(_mintingParams)));
 
         // Verify the message
         require(
-            mintingMaintainer ==
-                ECDSA.recover(digest, _mintingMaintainerSignedMsg),
+            mintingMaintainer == ECDSA.recover(digest, _mintingMaintainerSignedMsg),
             "Maintainer did not sign this message!"
         );
 

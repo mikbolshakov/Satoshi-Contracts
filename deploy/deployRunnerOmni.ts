@@ -1,17 +1,13 @@
 import { ethers } from 'hardhat';
 import hre from 'hardhat';
 
-// npx hardhat run deploy/deployRunnerOmni.ts --network scroll_sepolia
+// npx hardhat run deploy/deployRunnerOmni.ts --network base_sepolia
 async function main() {
   const adminAddress = '0x6ae19a226A6Cec3E29D5dfC90C2bd6640d8d77b9';
-  const scrollAndLineaEndpointTestnet = '0x6EDCE65403992e310A62460808c4b910D972f10f';
+  const testnetEndpointLZ = '0x6EDCE65403992e310A62460808c4b910D972f10f';
 
   const Runner2060 = await ethers.getContractFactory('RunnerOmni');
-  const runner2060 = await Runner2060.deploy(
-    adminAddress,
-    scrollAndLineaEndpointTestnet,
-    adminAddress,
-  );
+  const runner2060 = await Runner2060.deploy(adminAddress, testnetEndpointLZ, adminAddress);
 
   await runner2060.deployed();
   console.log(`RunnerOmni deployed to ${runner2060.address}`);
@@ -20,7 +16,7 @@ async function main() {
 
   await hre.run('verify:verify', {
     address: runner2060.address,
-    constructorArguments: [adminAddress, scrollAndLineaEndpointTestnet, adminAddress],
+    constructorArguments: [adminAddress, testnetEndpointLZ, adminAddress],
     contract: 'contracts/RunnerOmni.sol:RunnerOmni',
   });
 }

@@ -42,9 +42,7 @@ contract Runner2060rewards is
 
     // EIP712 message type hash for batch token minting
     bytes32 constant BATCH_MINT_TYPE_HASH =
-        keccak256(
-            "BatchMintingParams(uint256[] tokenIds,uint256[] amounts,bytes32 salt)"
-        );
+        keccak256("BatchMintingParams(uint256[] tokenIds,uint256[] amounts,bytes32 salt)");
 
     // signed message => bool verified
     mapping(bytes => bool) verifiedMessages;
@@ -107,9 +105,7 @@ contract Runner2060rewards is
     /// @notice Get the URI of a token.
     /// @param _tokenId ID of the token.
     /// @return URI of the token.
-    function uri(
-        uint256 _tokenId
-    ) public view override returns (string memory) {
+    function uri(uint256 _tokenId) public view override returns (string memory) {
         require(_tokenId <= uniqueItemsCount, "Token id doesn't exist");
 
         string memory base = _baseURI;
@@ -121,9 +117,7 @@ contract Runner2060rewards is
     /// @notice Set the mintingMaintainer address that will have the authority to sign mint messages.
     /// @param _mintingMaintainer Address of the new minting maintainer.
     /// @dev The private key is only known by the backend.
-    function setMintingMaintainer(
-        address _mintingMaintainer
-    ) external onlyRole(MAINTAINER_ROLE) {
+    function setMintingMaintainer(address _mintingMaintainer) external onlyRole(MAINTAINER_ROLE) {
         emit MaintenanceTransferred(mintingMaintainer, _mintingMaintainer);
         mintingMaintainer = _mintingMaintainer;
     }
@@ -137,10 +131,7 @@ contract Runner2060rewards is
     /// @notice Set the maximum supply for a given token ID.
     /// @param _tokenId ID of the token.
     /// @param _supply Maximum supply of the token.
-    function setMaxSupply(
-        uint256 _tokenId,
-        uint256 _supply
-    ) external onlyRole(TOKEN_ADMIN_ROLE) {
+    function setMaxSupply(uint256 _tokenId, uint256 _supply) external onlyRole(TOKEN_ADMIN_ROLE) {
         maxSupply[_tokenId] = _supply;
     }
 
@@ -174,8 +165,7 @@ contract Runner2060rewards is
         uint amount = _mintingParams.amount;
         require(tokenId <= uniqueItemsCount, "Token id doesn't exist");
         require(
-            maxSupply[tokenId] == 0 ||
-                totalSupply(tokenId) + amount <= maxSupply[tokenId],
+            maxSupply[tokenId] == 0 || totalSupply(tokenId) + amount <= maxSupply[tokenId],
             "Exceeds max supply"
         );
         require(
@@ -186,14 +176,11 @@ contract Runner2060rewards is
         verifiedMessages[_mintingMaintainerSignedMsg] = true;
 
         // Hash the message
-        bytes32 digest = _hashTypedDataV4(
-            keccak256(_constructMintingMessage(_mintingParams))
-        );
+        bytes32 digest = _hashTypedDataV4(keccak256(_constructMintingMessage(_mintingParams)));
 
         // Verify the message
         require(
-            mintingMaintainer ==
-                ECDSA.recover(digest, _mintingMaintainerSignedMsg),
+            mintingMaintainer == ECDSA.recover(digest, _mintingMaintainerSignedMsg),
             "Maintainer did not sign this message!"
         );
 
@@ -215,8 +202,7 @@ contract Runner2060rewards is
 
             require(tokenId <= uniqueItemsCount, "Token id doesn't exist");
             require(
-                maxSupply[tokenId] == 0 ||
-                    totalSupply(tokenId) + amount <= maxSupply[tokenId],
+                maxSupply[tokenId] == 0 || totalSupply(tokenId) + amount <= maxSupply[tokenId],
                 "Exceeds max supply"
             );
         }
@@ -228,22 +214,14 @@ contract Runner2060rewards is
         verifiedMessages[_mintingMaintainerSignedMsg] = true;
 
         // Hash the message
-        bytes32 digest = _hashTypedDataV4(
-            keccak256(_constructBatchMintingMessage(_mintingParams))
-        );
+        bytes32 digest = _hashTypedDataV4(keccak256(_constructBatchMintingMessage(_mintingParams)));
 
         // Verify the message
         require(
-            mintingMaintainer ==
-                ECDSA.recover(digest, _mintingMaintainerSignedMsg),
+            mintingMaintainer == ECDSA.recover(digest, _mintingMaintainerSignedMsg),
             "Maintainer did not sign this message!"
         );
-        _mintBatch(
-            msg.sender,
-            _mintingParams.tokenIds,
-            _mintingParams.amounts,
-            ""
-        );
+        _mintBatch(msg.sender, _mintingParams.tokenIds, _mintingParams.amounts, "");
     }
 
     // ------------- Internal ------------- //

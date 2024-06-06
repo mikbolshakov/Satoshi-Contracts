@@ -20,9 +20,7 @@ contract RunnerOmni is OFT, ERC20Burnable, ERC20Pausable, EIP712 {
 
     // EIP712 message type hash for single token minting
     bytes32 constant MINT_TYPE_HASH =
-        keccak256(
-            "MintingParams(address userAddress,uint256 amount,bytes32 salt)"
-        );
+        keccak256("MintingParams(address userAddress,uint256 amount,bytes32 salt)");
 
     // signed message => bool verified
     mapping(bytes => bool) verifiedMessages;
@@ -44,6 +42,7 @@ contract RunnerOmni is OFT, ERC20Burnable, ERC20Pausable, EIP712 {
         EIP712("RunnerOmni", "V1")
     {
         mintingMaintainer = _mintingMaintainerAddress;
+        _mint(msg.sender, 10_000 * 10 ** decimals());
     }
 
     // ------------- Getters ------------- //
@@ -57,9 +56,7 @@ contract RunnerOmni is OFT, ERC20Burnable, ERC20Pausable, EIP712 {
     /// @notice Set the mintingMaintainer address that will have the authority to sign mint messages.
     /// @param _mintingMaintainer Address of the new minting maintainer.
     /// @dev The private key is only known by the backend.
-    function setMintingMaintainer(
-        address _mintingMaintainer
-    ) external onlyOwner {
+    function setMintingMaintainer(address _mintingMaintainer) external onlyOwner {
         emit MaintenanceTransferred(mintingMaintainer, _mintingMaintainer);
         mintingMaintainer = _mintingMaintainer;
     }
@@ -107,14 +104,11 @@ contract RunnerOmni is OFT, ERC20Burnable, ERC20Pausable, EIP712 {
         verifiedMessages[_mintingMaintainerSignedMsg] = true;
 
         // Hash the message
-        bytes32 digest = _hashTypedDataV4(
-            keccak256(_constructMintingMessage(_mintingParams))
-        );
+        bytes32 digest = _hashTypedDataV4(keccak256(_constructMintingMessage(_mintingParams)));
 
         // Verify the message
         require(
-            mintingMaintainer ==
-                ECDSA.recover(digest, _mintingMaintainerSignedMsg),
+            mintingMaintainer == ECDSA.recover(digest, _mintingMaintainerSignedMsg),
             "Maintainer did not sign this message!"
         );
 

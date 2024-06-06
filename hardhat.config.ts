@@ -22,6 +22,16 @@ const config: HardhatUserConfig = {
     ],
   },
   networks: {
+    ethereum_sepolia: {
+      eid: EndpointId.SEPOLIA_V2_TESTNET,
+      url: process.env.ETH_SEPOLIA as string,
+      accounts: [process.env.ADMIN_PRIVATE_KEY as string],
+    },
+    base_sepolia: {
+      eid: EndpointId.BASESEP_V2_TESTNET,
+      url: process.env.BASE_SEPOLIA as string,
+      accounts: [process.env.ADMIN_PRIVATE_KEY as string],
+    },
     linea_sepolia: {
       eid: EndpointId.LINEASEP_V2_TESTNET,
       url: process.env.LINEA_SEPOLIA as string,
