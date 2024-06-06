@@ -47,6 +47,7 @@ const config: HardhatUserConfig = {
     apiKey: {
       linea_sepolia: process.env.LINEASCAN_API_KEY as string,
       scroll_sepolia: process.env.SCROLLSCAN_API_KEY as string,
+      ethereum_sepolia: process.env.ETHERSCAN_API_KEY as string,
     },
     customChains: [
       {
@@ -63,6 +64,14 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: 'https://api-sepolia.scrollscan.com/api',
           browserURL: 'https://sepolia.scrollscan.build',
+        },
+      },
+      {
+        network: 'ethereum_sepolia',
+        chainId: 11155111,
+        urls: {
+          apiURL: 'https://api-sepolia.etherscan.io/api',
+          browserURL: 'https://sepolia.etherscan.build',
         },
       },
     ],

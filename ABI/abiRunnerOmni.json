@@ -1,11 +1,7 @@
 [
   {
     "inputs": [
-      {
-        "internalType": "address",
-        "name": "_mintingMaintainerAddress",
-        "type": "address"
-      },
+      { "internalType": "address", "name": "_mintingMaintainerAddress", "type": "address" },
       { "internalType": "address", "name": "_lzEndpoint", "type": "address" },
       { "internalType": "address", "name": "_delegate", "type": "address" }
     ],
@@ -13,24 +9,18 @@
     "type": "constructor"
   },
   {
-    "inputs": [
-      { "internalType": "address", "name": "target", "type": "address" }
-    ],
+    "inputs": [{ "internalType": "address", "name": "target", "type": "address" }],
     "name": "AddressEmptyCode",
     "type": "error"
   },
   {
-    "inputs": [
-      { "internalType": "address", "name": "account", "type": "address" }
-    ],
+    "inputs": [{ "internalType": "address", "name": "account", "type": "address" }],
     "name": "AddressInsufficientBalance",
     "type": "error"
   },
   { "inputs": [], "name": "ECDSAInvalidSignature", "type": "error" },
   {
-    "inputs": [
-      { "internalType": "uint256", "name": "length", "type": "uint256" }
-    ],
+    "inputs": [{ "internalType": "uint256", "name": "length", "type": "uint256" }],
     "name": "ECDSAInvalidSignatureLength",
     "type": "error"
   },
@@ -58,30 +48,22 @@
     "type": "error"
   },
   {
-    "inputs": [
-      { "internalType": "address", "name": "approver", "type": "address" }
-    ],
+    "inputs": [{ "internalType": "address", "name": "approver", "type": "address" }],
     "name": "ERC20InvalidApprover",
     "type": "error"
   },
   {
-    "inputs": [
-      { "internalType": "address", "name": "receiver", "type": "address" }
-    ],
+    "inputs": [{ "internalType": "address", "name": "receiver", "type": "address" }],
     "name": "ERC20InvalidReceiver",
     "type": "error"
   },
   {
-    "inputs": [
-      { "internalType": "address", "name": "sender", "type": "address" }
-    ],
+    "inputs": [{ "internalType": "address", "name": "sender", "type": "address" }],
     "name": "ERC20InvalidSender",
     "type": "error"
   },
   {
-    "inputs": [
-      { "internalType": "address", "name": "spender", "type": "address" }
-    ],
+    "inputs": [{ "internalType": "address", "name": "spender", "type": "address" }],
     "name": "ERC20InvalidSpender",
     "type": "error"
   },
@@ -104,16 +86,12 @@
     "type": "error"
   },
   {
-    "inputs": [
-      { "internalType": "uint256", "name": "msgValue", "type": "uint256" }
-    ],
+    "inputs": [{ "internalType": "uint256", "name": "msgValue", "type": "uint256" }],
     "name": "NotEnoughNative",
     "type": "error"
   },
   {
-    "inputs": [
-      { "internalType": "address", "name": "addr", "type": "address" }
-    ],
+    "inputs": [{ "internalType": "address", "name": "addr", "type": "address" }],
     "name": "OnlyEndpoint",
     "type": "error"
   },
@@ -127,23 +105,17 @@
   },
   { "inputs": [], "name": "OnlySelf", "type": "error" },
   {
-    "inputs": [
-      { "internalType": "address", "name": "owner", "type": "address" }
-    ],
+    "inputs": [{ "internalType": "address", "name": "owner", "type": "address" }],
     "name": "OwnableInvalidOwner",
     "type": "error"
   },
   {
-    "inputs": [
-      { "internalType": "address", "name": "account", "type": "address" }
-    ],
+    "inputs": [{ "internalType": "address", "name": "account", "type": "address" }],
     "name": "OwnableUnauthorizedAccount",
     "type": "error"
   },
   {
-    "inputs": [
-      { "internalType": "address", "name": "token", "type": "address" }
-    ],
+    "inputs": [{ "internalType": "address", "name": "token", "type": "address" }],
     "name": "SafeERC20FailedOperation",
     "type": "error"
   },
@@ -168,34 +140,14 @@
   {
     "anonymous": false,
     "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "spender",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "value",
-        "type": "uint256"
-      }
+      { "indexed": true, "internalType": "address", "name": "owner", "type": "address" },
+      { "indexed": true, "internalType": "address", "name": "spender", "type": "address" },
+      { "indexed": false, "internalType": "uint256", "name": "value", "type": "uint256" }
     ],
     "name": "Approval",
     "type": "event"
   },
-  {
-    "anonymous": false,
-    "inputs": [],
-    "name": "EIP712DomainChanged",
-    "type": "event"
-  },
+  { "anonymous": false, "inputs": [], "name": "EIP712DomainChanged", "type": "event" },
   {
     "anonymous": false,
     "inputs": [
@@ -217,18 +169,8 @@
   {
     "anonymous": false,
     "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "maintainer",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "newMaintainer",
-        "type": "address"
-      }
+      { "indexed": false, "internalType": "address", "name": "maintainer", "type": "address" },
+      { "indexed": false, "internalType": "address", "name": "newMaintainer", "type": "address" }
     ],
     "name": "MaintenanceTransferred",
     "type": "event"
@@ -236,12 +178,7 @@
   {
     "anonymous": false,
     "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "inspector",
-        "type": "address"
-      }
+      { "indexed": false, "internalType": "address", "name": "inspector", "type": "address" }
     ],
     "name": "MsgInspectorSet",
     "type": "event"
@@ -249,30 +186,10 @@
   {
     "anonymous": false,
     "inputs": [
-      {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "guid",
-        "type": "bytes32"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint32",
-        "name": "srcEid",
-        "type": "uint32"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "toAddress",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amountReceivedLD",
-        "type": "uint256"
-      }
+      { "indexed": true, "internalType": "bytes32", "name": "guid", "type": "bytes32" },
+      { "indexed": false, "internalType": "uint32", "name": "srcEid", "type": "uint32" },
+      { "indexed": true, "internalType": "address", "name": "toAddress", "type": "address" },
+      { "indexed": false, "internalType": "uint256", "name": "amountReceivedLD", "type": "uint256" }
     ],
     "name": "OFTReceived",
     "type": "event"
@@ -280,36 +197,11 @@
   {
     "anonymous": false,
     "inputs": [
-      {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "guid",
-        "type": "bytes32"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint32",
-        "name": "dstEid",
-        "type": "uint32"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "fromAddress",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amountSentLD",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amountReceivedLD",
-        "type": "uint256"
-      }
+      { "indexed": true, "internalType": "bytes32", "name": "guid", "type": "bytes32" },
+      { "indexed": false, "internalType": "uint32", "name": "dstEid", "type": "uint32" },
+      { "indexed": true, "internalType": "address", "name": "fromAddress", "type": "address" },
+      { "indexed": false, "internalType": "uint256", "name": "amountSentLD", "type": "uint256" },
+      { "indexed": false, "internalType": "uint256", "name": "amountReceivedLD", "type": "uint256" }
     ],
     "name": "OFTSent",
     "type": "event"
@@ -317,18 +209,8 @@
   {
     "anonymous": false,
     "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "previousOwner",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-      }
+      { "indexed": true, "internalType": "address", "name": "previousOwner", "type": "address" },
+      { "indexed": true, "internalType": "address", "name": "newOwner", "type": "address" }
     ],
     "name": "OwnershipTransferred",
     "type": "event"
@@ -336,12 +218,7 @@
   {
     "anonymous": false,
     "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
+      { "indexed": false, "internalType": "address", "name": "account", "type": "address" }
     ],
     "name": "Paused",
     "type": "event"
@@ -349,18 +226,8 @@
   {
     "anonymous": false,
     "inputs": [
-      {
-        "indexed": false,
-        "internalType": "uint32",
-        "name": "eid",
-        "type": "uint32"
-      },
-      {
-        "indexed": false,
-        "internalType": "bytes32",
-        "name": "peer",
-        "type": "bytes32"
-      }
+      { "indexed": false, "internalType": "uint32", "name": "eid", "type": "uint32" },
+      { "indexed": false, "internalType": "bytes32", "name": "peer", "type": "bytes32" }
     ],
     "name": "PeerSet",
     "type": "event"
@@ -368,12 +235,7 @@
   {
     "anonymous": false,
     "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "preCrimeAddress",
-        "type": "address"
-      }
+      { "indexed": false, "internalType": "address", "name": "preCrimeAddress", "type": "address" }
     ],
     "name": "PreCrimeSet",
     "type": "event"
@@ -381,24 +243,9 @@
   {
     "anonymous": false,
     "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "from",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "to",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "value",
-        "type": "uint256"
-      }
+      { "indexed": true, "internalType": "address", "name": "from", "type": "address" },
+      { "indexed": true, "internalType": "address", "name": "to", "type": "address" },
+      { "indexed": false, "internalType": "uint256", "name": "value", "type": "uint256" }
     ],
     "name": "Transfer",
     "type": "event"
@@ -406,12 +253,7 @@
   {
     "anonymous": false,
     "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
+      { "indexed": false, "internalType": "address", "name": "account", "type": "address" }
     ],
     "name": "Unpaused",
     "type": "event"
@@ -476,18 +318,14 @@
     "type": "function"
   },
   {
-    "inputs": [
-      { "internalType": "address", "name": "account", "type": "address" }
-    ],
+    "inputs": [{ "internalType": "address", "name": "account", "type": "address" }],
     "name": "balanceOf",
     "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
     "stateMutability": "view",
     "type": "function"
   },
   {
-    "inputs": [
-      { "internalType": "uint256", "name": "value", "type": "uint256" }
-    ],
+    "inputs": [{ "internalType": "uint256", "name": "value", "type": "uint256" }],
     "name": "burn",
     "outputs": [],
     "stateMutability": "nonpayable",
@@ -546,11 +384,7 @@
       { "internalType": "string", "name": "name", "type": "string" },
       { "internalType": "string", "name": "version", "type": "string" },
       { "internalType": "uint256", "name": "chainId", "type": "uint256" },
-      {
-        "internalType": "address",
-        "name": "verifyingContract",
-        "type": "address"
-      },
+      { "internalType": "address", "name": "verifyingContract", "type": "address" },
       { "internalType": "bytes32", "name": "salt", "type": "bytes32" },
       { "internalType": "uint256[]", "name": "extensions", "type": "uint256[]" }
     ],
@@ -560,13 +394,7 @@
   {
     "inputs": [],
     "name": "endpoint",
-    "outputs": [
-      {
-        "internalType": "contract ILayerZeroEndpointV2",
-        "name": "",
-        "type": "address"
-      }
-    ],
+    "outputs": [{ "internalType": "contract ILayerZeroEndpointV2", "name": "", "type": "address" }],
     "stateMutability": "view",
     "type": "function"
   },
@@ -576,9 +404,7 @@
       { "internalType": "uint16", "name": "msgType", "type": "uint16" }
     ],
     "name": "enforcedOptions",
-    "outputs": [
-      { "internalType": "bytes", "name": "enforcedOption", "type": "bytes" }
-    ],
+    "outputs": [{ "internalType": "bytes", "name": "enforcedOption", "type": "bytes" }],
     "stateMutability": "view",
     "type": "function"
   },
@@ -648,11 +474,7 @@
           {
             "components": [
               { "internalType": "uint32", "name": "srcEid", "type": "uint32" },
-              {
-                "internalType": "bytes32",
-                "name": "sender",
-                "type": "bytes32"
-              },
+              { "internalType": "bytes32", "name": "sender", "type": "bytes32" },
               { "internalType": "uint64", "name": "nonce", "type": "uint64" }
             ],
             "internalType": "struct Origin",
@@ -701,18 +523,10 @@
   },
   {
     "inputs": [
-      {
-        "internalType": "bytes",
-        "name": "_mintingMaintainerSignedMsg",
-        "type": "bytes"
-      },
+      { "internalType": "bytes", "name": "_mintingMaintainerSignedMsg", "type": "bytes" },
       {
         "components": [
-          {
-            "internalType": "address",
-            "name": "userAddress",
-            "type": "address"
-          },
+          { "internalType": "address", "name": "userAddress", "type": "address" },
           { "internalType": "uint256", "name": "amount", "type": "uint256" },
           { "internalType": "bytes32", "name": "salt", "type": "bytes32" }
         ],
@@ -756,9 +570,7 @@
       { "internalType": "bytes32", "name": "", "type": "bytes32" }
     ],
     "name": "nextNonce",
-    "outputs": [
-      { "internalType": "uint64", "name": "nonce", "type": "uint64" }
-    ],
+    "outputs": [{ "internalType": "uint64", "name": "nonce", "type": "uint64" }],
     "stateMutability": "view",
     "type": "function"
   },
@@ -813,9 +625,7 @@
   {
     "inputs": [{ "internalType": "uint32", "name": "eid", "type": "uint32" }],
     "name": "peers",
-    "outputs": [
-      { "internalType": "bytes32", "name": "peer", "type": "bytes32" }
-    ],
+    "outputs": [{ "internalType": "bytes32", "name": "peer", "type": "bytes32" }],
     "stateMutability": "view",
     "type": "function"
   },
@@ -833,11 +643,7 @@
           { "internalType": "uint32", "name": "dstEid", "type": "uint32" },
           { "internalType": "bytes32", "name": "to", "type": "bytes32" },
           { "internalType": "uint256", "name": "amountLD", "type": "uint256" },
-          {
-            "internalType": "uint256",
-            "name": "minAmountLD",
-            "type": "uint256"
-          },
+          { "internalType": "uint256", "name": "minAmountLD", "type": "uint256" },
           { "internalType": "bytes", "name": "extraOptions", "type": "bytes" },
           { "internalType": "bytes", "name": "composeMsg", "type": "bytes" },
           { "internalType": "bytes", "name": "oftCmd", "type": "bytes" }
@@ -851,16 +657,8 @@
     "outputs": [
       {
         "components": [
-          {
-            "internalType": "uint256",
-            "name": "minAmountLD",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "maxAmountLD",
-            "type": "uint256"
-          }
+          { "internalType": "uint256", "name": "minAmountLD", "type": "uint256" },
+          { "internalType": "uint256", "name": "maxAmountLD", "type": "uint256" }
         ],
         "internalType": "struct OFTLimit",
         "name": "oftLimit",
@@ -877,16 +675,8 @@
       },
       {
         "components": [
-          {
-            "internalType": "uint256",
-            "name": "amountSentLD",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "amountReceivedLD",
-            "type": "uint256"
-          }
+          { "internalType": "uint256", "name": "amountSentLD", "type": "uint256" },
+          { "internalType": "uint256", "name": "amountReceivedLD", "type": "uint256" }
         ],
         "internalType": "struct OFTReceipt",
         "name": "oftReceipt",
@@ -903,11 +693,7 @@
           { "internalType": "uint32", "name": "dstEid", "type": "uint32" },
           { "internalType": "bytes32", "name": "to", "type": "bytes32" },
           { "internalType": "uint256", "name": "amountLD", "type": "uint256" },
-          {
-            "internalType": "uint256",
-            "name": "minAmountLD",
-            "type": "uint256"
-          },
+          { "internalType": "uint256", "name": "minAmountLD", "type": "uint256" },
           { "internalType": "bytes", "name": "extraOptions", "type": "bytes" },
           { "internalType": "bytes", "name": "composeMsg", "type": "bytes" },
           { "internalType": "bytes", "name": "oftCmd", "type": "bytes" }
@@ -947,11 +733,7 @@
           { "internalType": "uint32", "name": "dstEid", "type": "uint32" },
           { "internalType": "bytes32", "name": "to", "type": "bytes32" },
           { "internalType": "uint256", "name": "amountLD", "type": "uint256" },
-          {
-            "internalType": "uint256",
-            "name": "minAmountLD",
-            "type": "uint256"
-          },
+          { "internalType": "uint256", "name": "minAmountLD", "type": "uint256" },
           { "internalType": "bytes", "name": "extraOptions", "type": "bytes" },
           { "internalType": "bytes", "name": "composeMsg", "type": "bytes" },
           { "internalType": "bytes", "name": "oftCmd", "type": "bytes" }
@@ -979,16 +761,8 @@
           { "internalType": "uint64", "name": "nonce", "type": "uint64" },
           {
             "components": [
-              {
-                "internalType": "uint256",
-                "name": "nativeFee",
-                "type": "uint256"
-              },
-              {
-                "internalType": "uint256",
-                "name": "lzTokenFee",
-                "type": "uint256"
-              }
+              { "internalType": "uint256", "name": "nativeFee", "type": "uint256" },
+              { "internalType": "uint256", "name": "lzTokenFee", "type": "uint256" }
             ],
             "internalType": "struct MessagingFee",
             "name": "fee",
@@ -1001,16 +775,8 @@
       },
       {
         "components": [
-          {
-            "internalType": "uint256",
-            "name": "amountSentLD",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "amountReceivedLD",
-            "type": "uint256"
-          }
+          { "internalType": "uint256", "name": "amountSentLD", "type": "uint256" },
+          { "internalType": "uint256", "name": "amountReceivedLD", "type": "uint256" }
         ],
         "internalType": "struct OFTReceipt",
         "name": "oftReceipt",
@@ -1021,9 +787,7 @@
     "type": "function"
   },
   {
-    "inputs": [
-      { "internalType": "address", "name": "_delegate", "type": "address" }
-    ],
+    "inputs": [{ "internalType": "address", "name": "_delegate", "type": "address" }],
     "name": "setDelegate",
     "outputs": [],
     "stateMutability": "nonpayable",
@@ -1048,22 +812,14 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_mintingMaintainer",
-        "type": "address"
-      }
-    ],
+    "inputs": [{ "internalType": "address", "name": "_mintingMaintainer", "type": "address" }],
     "name": "setMintingMaintainer",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "inputs": [
-      { "internalType": "address", "name": "_msgInspector", "type": "address" }
-    ],
+    "inputs": [{ "internalType": "address", "name": "_msgInspector", "type": "address" }],
     "name": "setMsgInspector",
     "outputs": [],
     "stateMutability": "nonpayable",
@@ -1080,9 +836,7 @@
     "type": "function"
   },
   {
-    "inputs": [
-      { "internalType": "address", "name": "_preCrime", "type": "address" }
-    ],
+    "inputs": [{ "internalType": "address", "name": "_preCrime", "type": "address" }],
     "name": "setPreCrime",
     "outputs": [],
     "stateMutability": "nonpayable",
@@ -1138,9 +892,7 @@
     "type": "function"
   },
   {
-    "inputs": [
-      { "internalType": "address", "name": "newOwner", "type": "address" }
-    ],
+    "inputs": [{ "internalType": "address", "name": "newOwner", "type": "address" }],
     "name": "transferOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",

@@ -4,6 +4,6 @@ config();
 export const chainParams = {
   rpcUrl: process.env.ETH_SEPOLIA as string,
   privateKey: process.env.ADMIN_PRIVATE_KEY as string,
-  contractAddress: '0x2C03c6Ef9FEFE41cdEa0803C637d57B320B51389',
+  contractAddress: '0x8D0823A1986C5E66bbF2E66FA29251c4C179FBdb',
   eid: 40161,
 };

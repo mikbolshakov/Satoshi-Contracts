@@ -1,11 +1,11 @@
 import { ethers } from 'ethers';
 import { Options } from '@layerzerolabs/lz-v2-utilities';
 import contractAbi from '../ABI/abiRunnerOmni.json';
-import { chainParams as source } from '../chainParams/ethSepoliaData';
-import { chainParams as destination } from '../chainParams/baseSepoliaData';
+import { chainParams as source } from '../chainParams/ethSepoliaParams';
+import { chainParams as destination } from '../chainParams/scrollSepoliaParams';
 
 // npx hardhat run scripts/transfer.ts
-const amount = '1101';
+const amount = '500';
 const LAYERZERO_ENDPOINT_ADDRESS = '0x6EDCE65403992e310A62460808c4b910D972f10f';
 
 async function transferTokens() {
@@ -91,14 +91,22 @@ async function transferTokens() {
     ethers.utils.formatEther(await destinationContract.balanceOf(destWallet.address)),
   );
 
-  // const tx = await sourceContract.connect(sourceWallet).send(sendParam, [nativeFee, 0], sourceWallet.address, {
-  //     value: nativeFee,
-  // })
+  const tx = await sourceContract
+    .connect(sourceWallet)
+    .send(sendParam, [nativeFee, 0], sourceWallet.address, {
+      value: nativeFee,
+    });
 
-  // await tx.wait()
+  await tx.wait();
 
-  // console.log('Source balance after %s', ethers.utils.formatEther(await sourceContract.balanceOf(sourceWallet.address)))
-  // console.log('Destination balance after %s', ethers.utils.formatEther(await destinationContract.balanceOf(destWallet.address)))
+  console.log(
+    'Source balance after %s',
+    ethers.utils.formatEther(await sourceContract.balanceOf(sourceWallet.address)),
+  );
+  console.log(
+    'Destination balance after %s',
+    ethers.utils.formatEther(await destinationContract.balanceOf(destWallet.address)),
+  );
 }
 
 transferTokens();
