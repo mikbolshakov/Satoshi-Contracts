@@ -30,8 +30,8 @@ contract RunnerOmni is OFT, ERC20Burnable, ERC20Pausable, EIP712 {
 
     /// @notice Constructor to initialize the contract.
     /// @param _mintingMaintainerAddress Address of the minting maintainer.
-    /// @param _lzEndpoint zzzz
-    /// @param _delegate zzzz
+    /// @param _lzEndpoint The LayerZero Endpoint on the chain.
+    /// @param _delegate The delegate capable of making OApp configurations inside of the endpoint.
     constructor(
         address _mintingMaintainerAddress,
         address _lzEndpoint,
