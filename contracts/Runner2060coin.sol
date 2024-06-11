@@ -3,14 +3,14 @@ pragma solidity 0.8.24;
 
 import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@layerzerolabs/lz-evm-oapp-v2/contracts/oft/OFT.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Pausable.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 /// @title Runner2060coin
 /// @dev A smart contract for managing ERC20 tokens with minting, burning and pausing functionality.
-contract Runner2060coin is ERC20, ERC20Burnable, ERC20Pausable, AccessControl, EIP712 {
+contract Runner2060coin is OFT, ERC20Burnable, ERC20Pausable, EIP712 {
     /// @dev Struct defining minting parameters
     struct MintingParams {
         address userAddress; // Address to which tokens to mint
@@ -24,23 +24,26 @@ contract Runner2060coin is ERC20, ERC20Burnable, ERC20Pausable, AccessControl, E
 
     // signed message => bool verified
     mapping(bytes => bool) verifiedMessages;
+    bool transferStopped;
     address mintingMaintainer;
-
-    // Role for admin access
-    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
     event MaintenanceTransferred(address maintainer, address newMaintainer);
 
     /// @notice Constructor to initialize the contract.
     /// @param _mintingMaintainerAddress Address of the minting maintainer.
-    /// @param _defaultAdmin Address of the default admin.
+    /// @param _lzEndpoint The LayerZero Endpoint on the chain.
+    /// @param _delegate The delegate capable of making OApp configurations inside of the endpoint.
     constructor(
         address _mintingMaintainerAddress,
-        address _defaultAdmin
-    ) ERC20("Runner2060coin", "SuRun") EIP712("Runner2060coin", "V1") {
+        address _lzEndpoint,
+        address _delegate
+    )
+        OFT("Runner2060coin", "SuRun", _lzEndpoint, _delegate)
+        Ownable(_delegate)
+        EIP712("Runner2060coin", "V1")
+    {
         mintingMaintainer = _mintingMaintainerAddress;
-        _grantRole(DEFAULT_ADMIN_ROLE, _defaultAdmin);
-        _grantRole(ADMIN_ROLE, _defaultAdmin);
+        transferStopped = true;
     }
 
     // ------------- Getters ------------- //
@@ -54,34 +57,44 @@ contract Runner2060coin is ERC20, ERC20Burnable, ERC20Pausable, AccessControl, E
     /// @notice Set the mintingMaintainer address that will have the authority to sign mint messages.
     /// @param _mintingMaintainer Address of the new minting maintainer.
     /// @dev The private key is only known by the backend.
-    function setMintingMaintainer(address _mintingMaintainer) external onlyRole(ADMIN_ROLE) {
+    function setMintingMaintainer(address _mintingMaintainer) external onlyOwner {
         emit MaintenanceTransferred(mintingMaintainer, _mintingMaintainer);
         mintingMaintainer = _mintingMaintainer;
     }
 
     /// @notice Pause the contract functionality.
     /// @dev ERC20Pausable function.
-    function pause() external onlyRole(ADMIN_ROLE) {
+    function pause() external onlyOwner {
         _pause();
     }
 
     /// @notice Unpause the contract functionality.
     /// @dev ERC20Pausable function.
-    function unpause() external onlyRole(ADMIN_ROLE) {
+    function unpause() external onlyOwner {
         _unpause();
+    }
+
+    /// @notice Stop token transfers functionality.
+    function stopTheTransfer() external onlyOwner {
+        transferStopped = true;
+    }
+
+    /// @notice Enable token transfers functionality.
+    function enableTheTransfer() external onlyOwner {
+        transferStopped = false;
     }
 
     /// @notice Mint ERC20 tokens by admin.
     /// @param _to Address to which tokens are minted.
     /// @param _amount Amount of tokens to mint.
-    function mintByAdmin(address _to, uint256 _amount) external onlyRole(ADMIN_ROLE) {
+    function mintByAdmin(address _to, uint256 _amount) external onlyOwner {
         _mint(_to, _amount);
     }
 
     /// @notice Burn ERC20 tokens by admin.
     /// @param _from Address from which tokens to burn.
     /// @param _amount Amount of tokens to burn.
-    function burnByAdmin(address _from, uint256 _amount) external onlyRole(ADMIN_ROLE) {
+    function burnByAdmin(address _from, uint256 _amount) external onlyOwner {
         _burn(_from, _amount);
     }
 
@@ -137,6 +150,8 @@ contract Runner2060coin is ERC20, ERC20Burnable, ERC20Pausable, AccessControl, E
         address to,
         uint256 value
     ) internal override(ERC20, ERC20Pausable) {
+        require(!transferStopped || msg.sender == owner(), "Enable token transfers functionality!");
+
         super._update(from, to, value);
     }
 }

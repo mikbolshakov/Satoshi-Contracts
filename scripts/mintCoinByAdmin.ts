@@ -1,9 +1,9 @@
 import { ethers } from 'ethers';
 import { config } from 'dotenv';
-import abiRunner from '../ABI/abiRunnerOmni.json';
+import abiRunner from '../ABI/abiRunner2060coin.json';
 config();
 
-// npx ts-node scripts/mint.ts
+// npx ts-node scripts/mintCoinByAdmin.ts
 const erc20Linea = '0x4d65faD5bb34A586a9537FFF8E621B4Ba30720D9';
 
 const provider = new ethers.providers.JsonRpcProvider(process.env.LINEA_SEPOLIA);

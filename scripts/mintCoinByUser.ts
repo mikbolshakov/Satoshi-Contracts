@@ -3,13 +3,13 @@ import { config } from 'dotenv';
 import { Wallet } from 'ethers';
 import { joinSignature } from 'ethers/lib/utils';
 import { TypedDataUtils } from 'ethers-eip712';
-import abiRunner from '../ABI/abiRunner2060.json';
+import abiRunner from '../ABI/abiRunner2060coin.json';
 config();
 
-// npx ts-node scripts/mintRunner2060.ts
+// npx ts-node scripts/mintCoinByUser.ts
 const erc20Linea = '0x71589e8A956Cc2bc86593Cc5d6f9671f44178D0F';
 const provider = new ethers.providers.JsonRpcProvider(process.env.LINEA_SEPOLIA);
-const user = new ethers.Wallet('e714b8d4cdbfea5b18431d237e7e33e48bffa4a71d794fa3fa608bad5818cde4', provider);
+const user = new ethers.Wallet(process.env.USER_PRIVATE_KEY as string, provider);
 const admin = new ethers.Wallet(process.env.ADMIN_PRIVATE_KEY as string, provider);
 const contract = new ethers.Contract(erc20Linea, abiRunner, provider);
 

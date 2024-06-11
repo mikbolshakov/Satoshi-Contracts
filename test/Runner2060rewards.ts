@@ -40,6 +40,8 @@ describe('Runner2060rewards tests', () => {
       admin.address,
       fee,
       admin.address,
+      'Runner2060rewards',
+      'SuRunRewards',
     );
 
     expect(runner2060.address).to.not.eq(ethers.constants.AddressZero);
@@ -47,6 +49,8 @@ describe('Runner2060rewards tests', () => {
 
     const ERC2981 = '0x2a55205a';
     expect(await nftContract.supportsInterface(ERC2981)).to.equal(true);
+    expect(await nftContract.name()).to.eq('Runner2060rewards');
+    expect(await nftContract.symbol()).to.eq('SuRunRewards');
   });
 
   it('Set URI', async () => {
@@ -55,6 +59,16 @@ describe('Runner2060rewards tests', () => {
     ).to.be.revertedWithCustomError; // only owner check
 
     await nftContract.setURI('ipfs://QmU48M65weZGtmVUBVbj1hgfnozAsSgoKhgZ3NyGK24pMB/');
+  });
+
+  it('Enable token transfers', async () => {
+    await expect(
+      nftContract.connect(user1).safeTransferFrom(user1.address, user2.address, 0, 100, '0x'),
+    ).to.be.revertedWith('Enable token transfers functionality!');
+    expect(nftContract.connect(user1).enableTheTransfer()).to.be.revertedWithCustomError; // onlyOwner
+
+    // enableTheTransfer()
+    await nftContract.connect(admin).enableTheTransfer();
   });
 
   it('Increment unique items count', async () => {
@@ -175,7 +189,7 @@ describe('Runner2060rewards tests', () => {
   });
 
   it('Pause and unpause contract', async () => {
-    expect(nftContract.connect(user1).pause()).to.be.revertedWithCustomError; // onlyRole
+    expect(nftContract.connect(user1).pause()).to.be.revertedWithCustomError; // onlyOwner
 
     // pause()
     await nftContract.pause();
@@ -199,7 +213,7 @@ describe('Runner2060rewards tests', () => {
     );
     expect(await nftContract.balanceOf(user1.address, zeroTokenId)).to.be.eq(tokenAmount);
 
-    expect(nftContract.connect(user1).unpause()).to.be.revertedWithCustomError; // onlyRole
+    expect(nftContract.connect(user1).unpause()).to.be.revertedWithCustomError; // onlyOwner
 
     // unpause()
     await nftContract.unpause();
@@ -258,28 +272,11 @@ describe('Runner2060rewards tests', () => {
 
   it('Set mint maintainer', async () => {
     expect(nftContract.connect(user1).setMintingMaintainer(user2.address)).to.be
-      .revertedWithCustomError; // onlyRole
+      .revertedWithCustomError; // onlyOwner
 
     expect(await nftContract.getMintingMaintainer()).to.be.eq(mintMaintainer.address);
     await nftContract.setMintingMaintainer(user2.address);
     expect(await nftContract.getMintingMaintainer()).to.be.eq(user2.address);
-  });
-
-  it('Grant and revoke role', async () => {
-    const adminRole = '0xa49807205ce4d355092ef5a8a18f56e8913cf4a201fbe287825b095693c21775';
-
-    expect(await nftContract.connect(user1).hasRole(adminRole, user1.address)).to.be.eq(false);
-
-    expect(nftContract.connect(user1).grantRole(adminRole, user1.address)).to.be
-      .revertedWithCustomError; // onlyRole
-
-    // grantRole()
-    await nftContract.grantRole(adminRole, user1.address);
-    expect(await nftContract.connect(user1).hasRole(adminRole, user1.address)).to.be.eq(true);
-
-    // revokeRole()
-    await nftContract.revokeRole(adminRole, admin.address);
-    expect(await nftContract.hasRole(adminRole, admin.address)).to.be.eq(false);
   });
 });
 

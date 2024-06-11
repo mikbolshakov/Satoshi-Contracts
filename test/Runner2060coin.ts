@@ -1,152 +1,546 @@
-import { ethers } from 'hardhat';
+import { deployments, ethers } from 'hardhat';
 import { expect } from 'chai';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { Runner2060coin } from '../typechain-types';
-import { Wallet } from 'ethers';
+import { Wallet, Contract, ContractFactory } from 'ethers';
 import { joinSignature } from 'ethers/lib/utils';
 import { TypedDataUtils } from 'ethers-eip712';
+import { Options } from '@layerzerolabs/lz-v2-utilities';
+import { BigNumber } from 'ethers';
+
+const zeroAmount = 0;
+const hundredTokens = ethers.utils.parseEther('100');
+const thousandTokens = ethers.utils.parseEther('1000');
+
+const eidLineaMainnet = 30183;
+const eidScrollMainnet = 30214;
 
 describe('Runner2060coin tests', async () => {
-  const zeroAmount = 0;
-  const tokenAmount = 100;
-  const tokenLargeAmount = 1000;
+  // contracts
+  let EndpointV2Mock: ContractFactory;
+  let erc20Linea: Runner2060coin;
+  let erc20Scroll: Runner2060coin;
+  let mockEndpointV2Linea: Contract;
+  let mockEndpointV2Scroll: Contract;
 
-  let tokenContract: Runner2060coin;
-  let mintMaintainer: Wallet;
+  // accounts
   let signers: SignerWithAddress[];
-  let admin: SignerWithAddress;
-  let user1: SignerWithAddress;
-  let user2: SignerWithAddress;
+  let mintMaintainer: Wallet;
+  let adminLinea: SignerWithAddress; // _delegate & Owner
+  let adminScroll: SignerWithAddress; // _delegate & Owner
+  let endpointOwner: SignerWithAddress;
+  let user10: SignerWithAddress;
+  let user20: SignerWithAddress;
+  let thirdPartyDeployer: SignerWithAddress;
+
+  // backend
   let backend: BackendMock;
+
   before(async () => {
     mintMaintainer = ethers.Wallet.createRandom();
     signers = await ethers.getSigners();
-    admin = signers[0];
-    user1 = signers[1];
-    user2 = signers[2];
+    adminLinea = signers[0];
+    adminScroll = signers[1];
+    endpointOwner = signers[2];
+    user10 = signers[3];
+    user20 = signers[4];
+    thirdPartyDeployer = signers[5];
+
+    const EndpointV2MockArtifact = await deployments.getArtifact('EndpointV2Mock');
+    EndpointV2Mock = new ContractFactory(
+      EndpointV2MockArtifact.abi,
+      EndpointV2MockArtifact.bytecode,
+      endpointOwner,
+    );
   });
 
-  it('Deploy contract', async () => {
-    const Factory = await ethers.getContractFactory('Runner2060coin');
-    const runner2060 = await Factory.deploy(mintMaintainer.address, admin.address);
+  it('Deploy endpoints and contracts by thirdPartyDeployer', async () => {
+    mockEndpointV2Linea = await EndpointV2Mock.connect(thirdPartyDeployer).deploy(eidLineaMainnet);
+    mockEndpointV2Scroll =
+      await EndpointV2Mock.connect(thirdPartyDeployer).deploy(eidScrollMainnet);
 
-    expect(runner2060.address).to.not.eq(ethers.constants.AddressZero);
-    tokenContract = runner2060 as Runner2060coin;
+    const Factory = await ethers.getContractFactory('Runner2060coin');
+
+    const runner2060Linea = await Factory.connect(thirdPartyDeployer).deploy(
+      mintMaintainer.address,
+      mockEndpointV2Linea.address,
+      adminLinea.address,
+    );
+    const runner2060Scroll = await Factory.connect(thirdPartyDeployer).deploy(
+      mintMaintainer.address,
+      mockEndpointV2Scroll.address,
+      adminScroll.address,
+    );
+
+    expect(mockEndpointV2Linea.address).to.not.eq(ethers.constants.AddressZero);
+    expect(mockEndpointV2Scroll.address).to.not.eq(ethers.constants.AddressZero);
+    expect(runner2060Linea.address).to.not.eq(ethers.constants.AddressZero);
+    expect(runner2060Scroll.address).to.not.eq(ethers.constants.AddressZero);
+
+    erc20Linea = runner2060Linea as Runner2060coin;
+    erc20Scroll = runner2060Scroll as Runner2060coin;
+  });
+
+  it('Match omni contracts on Linea by thirdPartyDeployer and adminLinea', async () => {
+    await mockEndpointV2Linea
+      .connect(thirdPartyDeployer)
+      .setDestLzEndpoint(erc20Scroll.address, mockEndpointV2Scroll.address);
+
+    expect(
+      erc20Linea
+        .connect(thirdPartyDeployer)
+        .setPeer(eidScrollMainnet, ethers.utils.zeroPad(erc20Scroll.address, 32)),
+    ).to.be.revertedWithCustomError; // onlyOwner
+
+    await erc20Linea
+      .connect(adminLinea)
+      .setPeer(eidScrollMainnet, ethers.utils.zeroPad(erc20Scroll.address, 32));
+  });
+
+  it('Match omni contracts on Scroll by thirdPartyDeployer and adminScroll', async () => {
+    await mockEndpointV2Scroll
+      .connect(thirdPartyDeployer)
+      .setDestLzEndpoint(erc20Linea.address, mockEndpointV2Linea.address);
+
+    expect(
+      erc20Linea
+        .connect(thirdPartyDeployer)
+        .setPeer(eidScrollMainnet, ethers.utils.zeroPad(erc20Scroll.address, 32)),
+    ).to.be.revertedWithCustomError; // onlyOwner
+
+    await erc20Scroll
+      .connect(adminScroll)
+      .setPeer(eidLineaMainnet, ethers.utils.zeroPad(erc20Linea.address, 32));
+  });
+
+  it('Enable backend', async () => {
+    backend = new BackendMock(31337, erc20Linea.address, mintMaintainer);
+  });
+
+  it('Enable token transfers', async () => {
+    await erc20Linea.connect(adminLinea).mintByAdmin(user10.address, hundredTokens);
+    expect(await erc20Linea.balanceOf(user10.address)).to.be.eq(hundredTokens);
+
+    await expect(
+      erc20Linea.connect(user10).transfer(adminLinea.address, hundredTokens),
+    ).to.be.revertedWith('Enable token transfers functionality!');
+    expect(erc20Linea.connect(user10).enableTheTransfer()).to.be.revertedWithCustomError; // onlyOwner
+
+    // enableTheTransfer()
+    await erc20Linea.connect(adminLinea).enableTheTransfer();
+    await erc20Scroll.connect(adminScroll).enableTheTransfer();
+
+    expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(zeroAmount);
+    // transfer()
+    await erc20Linea.connect(user10).transfer(user20.address, hundredTokens);
+    expect(await erc20Linea.balanceOf(user10.address)).to.be.eq(zeroAmount);
+    expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(hundredTokens);
+    // burn()
+    await erc20Linea.connect(adminLinea).burnByAdmin(user20.address, hundredTokens);
+    expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(zeroAmount);
   });
 
   it('Mint tokens by user', async () => {
-    backend = new BackendMock(31337, tokenContract.address, mintMaintainer);
-
     // Mint tokens
     let mintOne = {
-      userAddress: user1.address,
-      amount: tokenLargeAmount,
+      userAddress: user10.address,
+      amount: thousandTokens,
       salt: '0x979b141b8bcd3ba17815cd76811f1fca1cabaa9d51f7c00712606970f01d6e37',
     };
     let signatureOne = backend.signMintMessage(mintOne);
 
-    expect(await tokenContract.balanceOf(user1.address)).to.be.eq(zeroAmount);
+    expect(await erc20Linea.balanceOf(user10.address)).to.be.eq(zeroAmount);
 
     // mint()
-    await tokenContract.connect(user1).mint(signatureOne, mintOne);
+    await erc20Linea.connect(user10).mint(signatureOne, mintOne);
 
-    expect(await tokenContract.balanceOf(user1.address)).to.be.eq(tokenLargeAmount);
-    await expect(tokenContract.connect(user1).mint(signatureOne, mintOne)).to.be.revertedWith(
+    expect(await erc20Linea.balanceOf(user10.address)).to.be.eq(thousandTokens);
+    await expect(erc20Linea.connect(user10).mint(signatureOne, mintOne)).to.be.revertedWith(
       'This message has already been executed!',
     );
 
     // Check: Maintainer did not sign this message!
     let mintTwo = {
-      userAddress: user1.address,
-      amount: tokenLargeAmount,
+      userAddress: user10.address,
+      amount: thousandTokens,
       salt: '0x222b141b8bcd3ba17815cd76811f1fca1cabaa9d51f7c00712606970f01d6222',
     };
     let signatureTwo = backend.signMintMessage(mintTwo);
 
-    await expect(tokenContract.connect(user1).mint(signatureTwo, mintOne)).to.be.revertedWith(
+    await expect(erc20Linea.connect(user10).mint(signatureTwo, mintOne)).to.be.revertedWith(
       'Maintainer did not sign this message!',
     );
   });
 
   it('Mint tokens by admin', async () => {
-    expect(tokenContract.connect(user1).mintByAdmin(user2.address, tokenAmount)).to.be
-      .revertedWithCustomError; // onlyRole
+    expect(erc20Linea.connect(user10).mintByAdmin(user20.address, hundredTokens)).to.be
+      .revertedWithCustomError; // onlyOwner
 
-    expect(await tokenContract.balanceOf(user2.address)).to.be.eq(zeroAmount);
-    await tokenContract.connect(admin).mintByAdmin(user2.address, tokenAmount);
-    expect(await tokenContract.balanceOf(user2.address)).to.be.eq(tokenAmount);
+    expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(zeroAmount);
+    await erc20Linea.connect(adminLinea).mintByAdmin(user20.address, hundredTokens);
+    expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(hundredTokens);
   });
 
   it('Pause and unpause contract', async () => {
-    expect(tokenContract.connect(user1).pause()).to.be.revertedWithCustomError; // onlyRole
+    expect(erc20Linea.connect(user10).pause()).to.be.revertedWithCustomError; // onlyOwner
 
     // pause()
-    await tokenContract.pause();
+    await erc20Linea.connect(adminLinea).pause();
 
     // Check: EnforcedPause()
     await expect(
-      tokenContract.connect(user1).transfer(user2.address, tokenAmount),
+      erc20Linea.connect(user10).transfer(user20.address, hundredTokens),
     ).to.be.rejectedWith('EnforcedPause()');
     await expect(
-      tokenContract.connect(admin).mintByAdmin(user2.address, tokenAmount),
+      erc20Linea.connect(adminLinea).mintByAdmin(user20.address, hundredTokens),
     ).to.be.rejectedWith('EnforcedPause()');
 
-    expect(tokenContract.connect(user1).unpause()).to.be.revertedWithCustomError; // onlyRole
+    expect(erc20Linea.connect(user10).unpause()).to.be.revertedWithCustomError; // onlyOwner
 
     // unpause()
-    await tokenContract.unpause();
+    await erc20Linea.connect(adminLinea).unpause();
 
     // mintByAdmin()
-    expect(await tokenContract.balanceOf(user2.address)).to.be.eq(tokenAmount);
-    await tokenContract.connect(admin).mintByAdmin(user2.address, tokenAmount);
-    expect(await tokenContract.balanceOf(user2.address)).to.be.eq(tokenAmount * 2);
+    expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(hundredTokens);
+    await erc20Linea.connect(adminLinea).mintByAdmin(user20.address, hundredTokens);
+    expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(hundredTokens.mul(2));
   });
 
   it('Burn tokens by user', async () => {
-    expect(await tokenContract.balanceOf(user2.address)).to.be.eq(tokenAmount * 2);
-    await tokenContract.connect(user2).burn(tokenAmount);
-    expect(await tokenContract.balanceOf(user2.address)).to.be.eq(tokenAmount);
+    expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(hundredTokens.mul(2));
+    await erc20Linea.connect(user20).burn(hundredTokens);
+    expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(hundredTokens);
   });
 
   it('Burn tokens by admin', async () => {
-    expect(tokenContract.connect(user1).burnByAdmin(user2.address, tokenAmount)).to.be
-      .revertedWithCustomError; // onlyRole
+    expect(erc20Linea.connect(user10).burnByAdmin(user20.address, hundredTokens)).to.be
+      .revertedWithCustomError; // onlyOwner
 
-    expect(await tokenContract.balanceOf(user2.address)).to.be.eq(tokenAmount);
-    await tokenContract.connect(admin).burnByAdmin(user2.address, tokenAmount);
-    expect(await tokenContract.balanceOf(user2.address)).to.be.eq(zeroAmount);
+    expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(hundredTokens);
+    await erc20Linea.connect(adminLinea).burnByAdmin(user20.address, hundredTokens);
+    expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(zeroAmount);
   });
 
   it('Set mint maintainer', async () => {
-    expect(tokenContract.connect(user1).setMintingMaintainer(user2.address)).to.be
-      .revertedWithCustomError; // onlyRole
+    expect(erc20Linea.connect(user10).setMintingMaintainer(user20.address)).to.be
+      .revertedWithCustomError; // onlyOwner
 
-    expect(await tokenContract.getMintingMaintainer()).to.be.eq(mintMaintainer.address);
-    await tokenContract.setMintingMaintainer(user2.address);
-    expect(await tokenContract.getMintingMaintainer()).to.be.eq(user2.address);
+    expect(await erc20Linea.getMintingMaintainer()).to.be.eq(mintMaintainer.address);
+    await erc20Linea.connect(adminLinea).setMintingMaintainer(user20.address);
+    expect(await erc20Linea.getMintingMaintainer()).to.be.eq(user20.address);
   });
 
-  it('Grant and revoke role', async () => {
-    const adminRole = '0xa49807205ce4d355092ef5a8a18f56e8913cf4a201fbe287825b095693c21775';
+  it('Send tokens from Linea to Scroll (adminLinea => adminScroll)', async () => {
+    await erc20Linea.connect(adminLinea).mintByAdmin(adminLinea.address, thousandTokens);
 
-    expect(await tokenContract.connect(user1).hasRole(adminRole, user1.address)).to.be.eq(false);
+    expect(await erc20Linea.totalSupply()).to.be.eq(thousandTokens.mul(2));
+    expect(await erc20Scroll.totalSupply()).to.be.eq(zeroAmount);
 
-    expect(tokenContract.connect(user1).grantRole(adminRole, user1.address)).to.be
-      .revertedWithCustomError; // onlyRole
+    expect(await erc20Linea.balanceOf(adminLinea.address)).to.be.eq(thousandTokens);
+    expect(await erc20Scroll.balanceOf(adminLinea.address)).to.be.eq(zeroAmount);
+    expect(await erc20Linea.balanceOf(adminScroll.address)).to.be.eq(zeroAmount);
+    expect(await erc20Scroll.balanceOf(adminScroll.address)).to.be.eq(zeroAmount);
 
-    // grantRole()
-    await tokenContract.grantRole(adminRole, user1.address);
-    expect(await tokenContract.connect(user1).hasRole(adminRole, user1.address)).to.be.eq(true);
+    const options = Options.newOptions().addExecutorLzReceiveOption(200000, 0).toHex().toString();
 
-    // revokeRole()
-    await tokenContract.revokeRole(adminRole, admin.address);
-    expect(await tokenContract.hasRole(adminRole, admin.address)).to.be.eq(false);
+    const sendParam = {
+      dstEid: eidScrollMainnet,
+      to: ethers.utils.zeroPad(adminScroll.address, 32),
+      amountLD: hundredTokens,
+      minAmountLD: hundredTokens,
+      extraOptions: options,
+      composeMsg: '0x',
+      oftCmd: '0x',
+    };
+
+    const [nativeFee] = await erc20Linea.quoteSend(sendParam, false); // false - Flag indicating whether the caller is paying in the LZ token.
+
+    const MessagingFee = {
+      nativeFee: nativeFee,
+      lzTokenFee: 0,
+    };
+    await erc20Linea
+      .connect(adminLinea)
+      .send(sendParam, MessagingFee, adminLinea.address, { value: nativeFee });
+
+    expect(await erc20Linea.balanceOf(adminLinea.address)).to.be.eq(
+      thousandTokens.sub(hundredTokens),
+    );
+    expect(await erc20Scroll.balanceOf(adminLinea.address)).to.be.eq(zeroAmount);
+    expect(await erc20Linea.balanceOf(adminScroll.address)).to.be.eq(zeroAmount);
+    expect(await erc20Scroll.balanceOf(adminScroll.address)).to.be.eq(hundredTokens);
+
+    expect(await erc20Linea.totalSupply()).to.be.eq(thousandTokens.mul(2).sub(hundredTokens));
+    expect(await erc20Scroll.totalSupply()).to.be.eq(hundredTokens);
+  });
+
+  it('Send tokens from Linea to Scroll (user10 => user10)', async () => {
+    expect(await erc20Linea.totalSupply()).to.be.eq(thousandTokens.mul(2).sub(hundredTokens));
+    expect(await erc20Scroll.totalSupply()).to.be.eq(hundredTokens);
+
+    expect(await erc20Linea.balanceOf(user10.address)).to.be.eq(thousandTokens);
+    expect(await erc20Scroll.balanceOf(user10.address)).to.be.eq(zeroAmount);
+
+    const options = Options.newOptions().addExecutorLzReceiveOption(200000, 0).toHex().toString();
+
+    const sendParam = {
+      dstEid: eidScrollMainnet,
+      to: ethers.utils.zeroPad(user10.address, 32),
+      amountLD: hundredTokens,
+      minAmountLD: hundredTokens,
+      extraOptions: options,
+      composeMsg: '0x',
+      oftCmd: '0x',
+    };
+
+    const [nativeFee] = await erc20Linea.quoteSend(sendParam, false); // false - Flag indicating whether the caller is paying in the LZ token.
+
+    const MessagingFee = {
+      nativeFee: nativeFee,
+      lzTokenFee: 0,
+    };
+    await erc20Linea
+      .connect(user10)
+      .send(sendParam, MessagingFee, adminLinea.address, { value: nativeFee });
+
+    expect(await erc20Linea.balanceOf(user10.address)).to.be.eq(thousandTokens.sub(hundredTokens));
+    expect(await erc20Scroll.balanceOf(user10.address)).to.be.eq(hundredTokens);
+
+    expect(await erc20Linea.totalSupply()).to.be.eq(
+      thousandTokens.mul(2).sub(hundredTokens.mul(2)),
+    );
+    expect(await erc20Scroll.totalSupply()).to.be.eq(hundredTokens.mul(2));
+  });
+
+  it('Send tokens from Linea to Scroll (user10 => user20)', async () => {
+    expect(await erc20Linea.totalSupply()).to.be.eq(
+      thousandTokens.mul(2).sub(hundredTokens.mul(2)),
+    );
+    expect(await erc20Scroll.totalSupply()).to.be.eq(hundredTokens.mul(2));
+
+    expect(await erc20Linea.balanceOf(user10.address)).to.be.eq(thousandTokens.sub(hundredTokens));
+    expect(await erc20Scroll.balanceOf(user20.address)).to.be.eq(zeroAmount);
+
+    const options = Options.newOptions().addExecutorLzReceiveOption(200000, 0).toHex().toString();
+
+    const sendParam = {
+      dstEid: eidScrollMainnet,
+      to: ethers.utils.zeroPad(user20.address, 32),
+      amountLD: hundredTokens,
+      minAmountLD: hundredTokens,
+      extraOptions: options,
+      composeMsg: '0x',
+      oftCmd: '0x',
+    };
+
+    const [nativeFee] = await erc20Linea.quoteSend(sendParam, false); // false - Flag indicating whether the caller is paying in the LZ token.
+
+    const MessagingFee = {
+      nativeFee: nativeFee,
+      lzTokenFee: 0,
+    };
+    await erc20Linea
+      .connect(user10)
+      .send(sendParam, MessagingFee, user10.address, { value: nativeFee });
+
+    expect(await erc20Linea.balanceOf(user10.address)).to.be.eq(
+      thousandTokens.sub(hundredTokens.mul(2)),
+    );
+    expect(await erc20Scroll.balanceOf(user20.address)).to.be.eq(hundredTokens);
+
+    expect(await erc20Linea.totalSupply()).to.be.eq(
+      thousandTokens.mul(2).sub(hundredTokens.mul(3)),
+    );
+    expect(await erc20Scroll.totalSupply()).to.be.eq(hundredTokens.mul(3));
+  });
+
+  it('Send tokens from Scroll to Linea (user20 => user10)', async () => {
+    expect(await erc20Linea.totalSupply()).to.be.eq(
+      thousandTokens.mul(2).sub(hundredTokens.mul(3)),
+    );
+    expect(await erc20Scroll.totalSupply()).to.be.eq(hundredTokens.mul(3));
+
+    expect(await erc20Linea.balanceOf(user10.address)).to.be.eq(
+      thousandTokens.sub(hundredTokens.mul(2)),
+    );
+    expect(await erc20Scroll.balanceOf(user20.address)).to.be.eq(hundredTokens);
+
+    const options = Options.newOptions().addExecutorLzReceiveOption(200000, 0).toHex().toString();
+
+    const sendParam = {
+      dstEid: eidLineaMainnet,
+      to: ethers.utils.zeroPad(user10.address, 32),
+      amountLD: hundredTokens,
+      minAmountLD: hundredTokens,
+      extraOptions: options,
+      composeMsg: '0x',
+      oftCmd: '0x',
+    };
+
+    const [nativeFee] = await erc20Scroll.quoteSend(sendParam, false); // false - Flag indicating whether the caller is paying in the LZ token.
+
+    const MessagingFee = {
+      nativeFee: nativeFee,
+      lzTokenFee: 0,
+    };
+    await erc20Scroll
+      .connect(user20)
+      .send(sendParam, MessagingFee, user10.address, { value: nativeFee });
+
+    expect(await erc20Linea.balanceOf(user10.address)).to.be.eq(thousandTokens.sub(hundredTokens));
+    expect(await erc20Scroll.balanceOf(user20.address)).to.be.eq(zeroAmount);
+
+    expect(await erc20Linea.totalSupply()).to.be.eq(
+      thousandTokens.mul(2).sub(hundredTokens.mul(2)),
+    );
+    expect(await erc20Scroll.totalSupply()).to.be.eq(hundredTokens.mul(2));
+  });
+
+  it('Send tokens from Linea to Scroll (user10 => user20) revert msg.sender', async () => {
+    expect(await erc20Linea.balanceOf(user10.address)).to.be.eq(thousandTokens.sub(hundredTokens));
+    expect(await erc20Scroll.balanceOf(user20.address)).to.be.eq(zeroAmount);
+
+    const options = Options.newOptions().addExecutorLzReceiveOption(200000, 0).toHex().toString();
+
+    const sendParam = {
+      dstEid: eidScrollMainnet,
+      to: ethers.utils.zeroPad(user20.address, 32),
+      amountLD: hundredTokens,
+      minAmountLD: hundredTokens,
+      extraOptions: options,
+      composeMsg: '0x',
+      oftCmd: '0x',
+    };
+
+    let [nativeFee] = await erc20Linea.quoteSend(sendParam, false); // false - Flag indicating whether the caller is paying in the LZ token.
+
+    const MessagingFee = {
+      nativeFee: nativeFee,
+      lzTokenFee: 0,
+    };
+
+    // user20 => user20
+    expect(
+      erc20Linea
+        .connect(user20)
+        .send(sendParam, MessagingFee, user10.address, { value: nativeFee }),
+    ).to.be.revertedWithCustomError; // "ERC20InsufficientBalance(\"0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65\", 0, 100000000000000000000)"
+
+    // user10 => user20
+    await erc20Linea
+      .connect(user10)
+      .send(sendParam, MessagingFee, user10.address, { value: nativeFee });
+
+    expect(await erc20Linea.balanceOf(user10.address)).to.be.eq(
+      thousandTokens.sub(hundredTokens.mul(2)),
+    );
+    expect(await erc20Scroll.balanceOf(user20.address)).to.be.eq(hundredTokens);
+
+    // adminLinea => user20
+    expect(await erc20Linea.balanceOf(adminLinea.address)).to.be.eq(
+      thousandTokens.sub(hundredTokens),
+    );
+    await erc20Linea
+      .connect(adminLinea)
+      .send(sendParam, MessagingFee, user10.address, { value: nativeFee });
+    expect(await erc20Linea.balanceOf(adminLinea.address)).to.be.eq(
+      thousandTokens.sub(hundredTokens.mul(2)),
+    );
+
+    expect(await erc20Linea.balanceOf(user10.address)).to.be.eq(
+      thousandTokens.sub(hundredTokens.mul(2)),
+    );
+    expect(await erc20Scroll.balanceOf(user20.address)).to.be.eq(hundredTokens.mul(2));
+  });
+
+  it('Send tokens from Linea to Scroll (user10 => user20) revert params', async () => {
+    const options = Options.newOptions().addExecutorLzReceiveOption(200000, 0).toHex().toString();
+
+    // changed dstEid: eidScrollMainnet => eidLineaMainnet
+    const sendParam2 = {
+      dstEid: eidLineaMainnet,
+      to: ethers.utils.zeroPad(user20.address, 32),
+      amountLD: hundredTokens,
+      minAmountLD: hundredTokens,
+      extraOptions: options,
+      composeMsg: '0x',
+      oftCmd: '0x',
+    };
+
+    // reverted: need to change erc20Linea to erc20Scroll, because eidLineaMainnet in sendParam2
+    expect(erc20Linea.quoteSend(sendParam2, false)).to.be.revertedWithCustomError;
+  });
+
+  it('Send tokens from Linea to Scroll (user10 => user20)', async () => {
+    const options = Options.newOptions().addExecutorLzReceiveOption(200000, 0).toHex().toString();
+    const sendParam3 = {
+      dstEid: eidScrollMainnet,
+      to: ethers.utils.zeroPad(user20.address, 32),
+      amountLD: hundredTokens,
+      minAmountLD: hundredTokens,
+      extraOptions: options,
+      composeMsg: '0x',
+      oftCmd: '0x',
+    };
+
+    let [nativeFee] = await erc20Linea.quoteSend(sendParam3, false);
+
+    const MessagingFee3 = {
+      nativeFee: nativeFee,
+      lzTokenFee: 0,
+    };
+
+    expect(await erc20Linea.balanceOf(user10.address)).to.be.eq(
+      thousandTokens.sub(hundredTokens.mul(2)),
+    );
+    expect(await erc20Scroll.balanceOf(user20.address)).to.be.eq(hundredTokens.mul(2));
+
+    // user10 => user20
+    await erc20Linea
+      .connect(user10)
+      .send(sendParam3, MessagingFee3, user10.address, { value: nativeFee });
+
+    expect(await erc20Linea.balanceOf(user10.address)).to.be.eq(
+      thousandTokens.sub(hundredTokens.mul(3)),
+    );
+    expect(await erc20Scroll.balanceOf(user20.address)).to.be.eq(hundredTokens.mul(3));
+  });
+
+  it('Send tokens from Scroll to Linea (user20 => user20)', async () => {
+    const options = Options.newOptions().addExecutorLzReceiveOption(200000, 0).toHex().toString();
+    const sendParam4 = {
+      dstEid: eidLineaMainnet,
+      to: ethers.utils.zeroPad(user20.address, 32),
+      amountLD: hundredTokens,
+      minAmountLD: hundredTokens,
+      extraOptions: options,
+      composeMsg: '0x',
+      oftCmd: '0x',
+    };
+
+    let [nativeFee] = await erc20Scroll.quoteSend(sendParam4, false);
+
+    const MessagingFee4 = {
+      nativeFee: nativeFee,
+      lzTokenFee: 0,
+    };
+
+    expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(zeroAmount);
+    expect(await erc20Scroll.balanceOf(user20.address)).to.be.eq(hundredTokens.mul(3));
+
+    // user20 => user20
+    await erc20Scroll
+      .connect(user20)
+      .send(sendParam4, MessagingFee4, user20.address, { value: nativeFee });
+
+    expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(hundredTokens);
+    expect(await erc20Scroll.balanceOf(user20.address)).to.be.eq(hundredTokens.mul(2));
   });
 });
 
 interface MintInterface {
   userAddress: string;
-  amount: number;
+  amount: BigNumber;
   salt: string;
 }
 

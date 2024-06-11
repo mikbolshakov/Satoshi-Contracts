@@ -21,6 +21,16 @@ const scrollSepoliaContract: OmniPointHardhat = {
   contractName: 'RunnerOmni',
 };
 
+const lineaContract: OmniPointHardhat = {
+  eid: 30183,
+  contractName: 'CoinTest',
+};
+
+const scrollContract: OmniPointHardhat = {
+  eid: EndpointId.SCROLL_MAINNET,
+  contractName: 'CoinTest',
+};
+
 const config: OAppOmniGraphHardhat = {
   contracts: [
     {
@@ -34,6 +44,12 @@ const config: OAppOmniGraphHardhat = {
     },
     {
       contract: scrollSepoliaContract,
+    },
+    {
+      contract: lineaContract,
+    },
+    {
+      contract: scrollContract,
     },
   ],
   connections: [
@@ -52,6 +68,14 @@ const config: OAppOmniGraphHardhat = {
     {
       from: scrollSepoliaContract,
       to: lineaSepoliaContract,
+    },
+    {
+      from: lineaContract,
+      to: scrollContract,
+    },
+    {
+      from: scrollContract,
+      to: lineaContract,
     },
   ],
 };

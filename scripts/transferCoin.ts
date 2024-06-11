@@ -1,10 +1,10 @@
 import { ethers } from 'ethers';
 import { Options } from '@layerzerolabs/lz-v2-utilities';
-import contractAbi from '../ABI/abiRunnerOmni.json';
+import contractAbi from '../ABI/abiRunner2060coin.json';
 import { chainParams as source } from '../chainParams/ethSepoliaParams';
 import { chainParams as destination } from '../chainParams/scrollSepoliaParams';
 
-// npx hardhat run scripts/transfer.ts
+// npx hardhat run scripts/transferCoin.ts
 const amount = '500';
 const LAYERZERO_ENDPOINT_ADDRESS = '0x6EDCE65403992e310A62460808c4b910D972f10f';
 

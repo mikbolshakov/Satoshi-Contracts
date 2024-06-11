@@ -1,25 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
+import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Pausable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@openzeppelin/contracts/token/common/ERC2981.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 /// @title Runner2060rewards
 /// @dev A smart contract for managing ERC1155 tokens with minting, pausing and supply control functionality.
-contract Runner2060rewards is
-    ERC1155,
-    AccessControl,
-    ERC1155Pausable,
-    ERC1155Supply,
-    ERC2981,
-    EIP712
-{
+contract Runner2060rewards is Ownable, ERC1155, ERC1155Pausable, ERC1155Supply, ERC2981, EIP712 {
     using Strings for uint256;
 
     /// @dev Struct defining minting parameters
@@ -53,12 +46,9 @@ contract Runner2060rewards is
     uint256 uniqueItemsCount;
     string _baseURI;
     string _baseExtension = ".json";
-
-    // Role constants
-    bytes32 public constant PAUSE_ROLE = keccak256("PAUSE_ROLE");
-    bytes32 public constant MAINTAINER_ROLE = keccak256("MAINTAINER_ROLE");
-    bytes32 public constant TOKEN_ADMIN_ROLE = keccak256("TOKEN_ADMIN_ROLE");
-    bytes32 public constant URI_SETTER_ROLE = keccak256("URI_SETTER_ROLE");
+    string public name;
+    string public symbol;
+    bool transferStopped;
 
     event MaintenanceTransferred(address maintainer, address newMaintainer);
 
@@ -66,20 +56,20 @@ contract Runner2060rewards is
     /// @param _mintingMaintainerAddress Address of the minting maintainer.
     /// @param _royaltyReceiver Address of the royalty receiver.
     /// @param _feeNumerator Numerator of the royalty fee.
-    /// @param _defaultAdmin Address of the default admin.
+    /// @param _delegate The delegate capable of making OApp configurations inside of the endpoint.
     constructor(
         address _mintingMaintainerAddress,
         address _royaltyReceiver,
         uint96 _feeNumerator,
-        address _defaultAdmin
-    ) ERC1155("") EIP712("Runner2060rewards", "V1") {
+        address _delegate,
+        string memory _name,
+        string memory _symbol
+    ) ERC1155("") Ownable(_delegate) EIP712("Runner2060rewards", "V1") {
         mintingMaintainer = _mintingMaintainerAddress;
         _setDefaultRoyalty(_royaltyReceiver, _feeNumerator);
-        _grantRole(DEFAULT_ADMIN_ROLE, _defaultAdmin);
-        _grantRole(PAUSE_ROLE, _defaultAdmin);
-        _grantRole(MAINTAINER_ROLE, _defaultAdmin);
-        _grantRole(TOKEN_ADMIN_ROLE, _defaultAdmin);
-        _grantRole(URI_SETTER_ROLE, _defaultAdmin);
+        name = _name;
+        symbol = _symbol;
+        transferStopped = true;
     }
 
     // ------------- Getters ------------- //
@@ -117,39 +107,49 @@ contract Runner2060rewards is
     /// @notice Set the mintingMaintainer address that will have the authority to sign mint messages.
     /// @param _mintingMaintainer Address of the new minting maintainer.
     /// @dev The private key is only known by the backend.
-    function setMintingMaintainer(address _mintingMaintainer) external onlyRole(MAINTAINER_ROLE) {
+    function setMintingMaintainer(address _mintingMaintainer) external onlyOwner {
         emit MaintenanceTransferred(mintingMaintainer, _mintingMaintainer);
         mintingMaintainer = _mintingMaintainer;
     }
 
     /// @notice Set the base URI for all token IDs.
     /// @param _newuri The new base URI.
-    function setURI(string memory _newuri) external onlyRole(TOKEN_ADMIN_ROLE) {
+    function setURI(string memory _newuri) external onlyOwner {
         _baseURI = _newuri;
     }
 
     /// @notice Set the maximum supply for a given token ID.
     /// @param _tokenId ID of the token.
     /// @param _supply Maximum supply of the token.
-    function setMaxSupply(uint256 _tokenId, uint256 _supply) external onlyRole(TOKEN_ADMIN_ROLE) {
+    function setMaxSupply(uint256 _tokenId, uint256 _supply) external onlyOwner {
         maxSupply[_tokenId] = _supply;
     }
 
     /// @notice Increment the count of unique items.
-    function incrementUniqueItemsCount() external onlyRole(TOKEN_ADMIN_ROLE) {
+    function incrementUniqueItemsCount() external onlyOwner {
         uniqueItemsCount++;
     }
 
     /// @notice Pause the contract functionality.
     /// @dev ERC1155Pausable function.
-    function pause() external onlyRole(PAUSE_ROLE) {
+    function pause() external onlyOwner {
         _pause();
     }
 
     /// @notice Unpause the contract functionality.
     /// @dev ERC1155Pausable function.
-    function unpause() external onlyRole(PAUSE_ROLE) {
+    function unpause() external onlyOwner {
         _unpause();
+    }
+
+    /// @notice Stop token transfers functionality.
+    function stopTheTransfer() external onlyOwner {
+        transferStopped = true;
+    }
+
+    /// @notice Enable token transfers functionality.
+    function enableTheTransfer() external onlyOwner {
+        transferStopped = false;
     }
 
     /// @notice Mint a single token.
@@ -261,7 +261,7 @@ contract Runner2060rewards is
     /// @inheritdoc ERC1155
     function supportsInterface(
         bytes4 interfaceId
-    ) public view override(AccessControl, ERC1155, ERC2981) returns (bool) {
+    ) public view override(ERC1155, ERC2981) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 
@@ -272,6 +272,8 @@ contract Runner2060rewards is
         uint256[] memory ids,
         uint256[] memory values
     ) internal override(ERC1155, ERC1155Pausable, ERC1155Supply) {
+        require(!transferStopped || msg.sender == owner(), "Enable token transfers functionality!");
+
         super._update(from, to, ids, values);
     }
 }
