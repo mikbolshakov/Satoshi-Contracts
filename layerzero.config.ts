@@ -31,6 +31,11 @@ const scrollContract: OmniPointHardhat = {
   contractName: 'CoinTest',
 };
 
+const xlayerContract: OmniPointHardhat = {
+  eid: EndpointId.XLAYER_V2_MAINNET,
+  contractName: 'CoinTest',
+};
+
 const config: OAppOmniGraphHardhat = {
   contracts: [
     {
@@ -50,6 +55,9 @@ const config: OAppOmniGraphHardhat = {
     },
     {
       contract: scrollContract,
+    },
+    {
+      contract: xlayerContract,
     },
   ],
   connections: [
@@ -76,6 +84,22 @@ const config: OAppOmniGraphHardhat = {
     {
       from: scrollContract,
       to: lineaContract,
+    },
+    {
+      from: lineaContract,
+      to: xlayerContract,
+    },
+    {
+      from: xlayerContract,
+      to: lineaContract,
+    },
+    {
+      from: scrollContract,
+      to: xlayerContract,
+    },
+    {
+      from: xlayerContract,
+      to: scrollContract,
     },
   ],
 };

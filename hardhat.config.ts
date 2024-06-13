@@ -45,13 +45,18 @@ const config: HardhatUserConfig = {
     linea_mainnet: {
       eid: 30183,
       url: process.env.LINEA_MAINNET as string,
-      accounts: [process.env.ADMIN_PRIVATE_KEY as string],
+      accounts: [process.env.USER_PRIVATE_KEY as string],
     },
     scroll_mainnet: {
       eid: EndpointId.SCROLL_V2_MAINNET,
-      url: process.env.SCROLL_SEPOLIA as string,
-      accounts: [process.env.ADMIN_PRIVATE_KEY as string],
+      url: process.env.SCROLL_MAINNET as string,
+      accounts: [process.env.USER_PRIVATE_KEY as string],
     },
+    xlayer_mainnet: {
+        eid: EndpointId.XLAYER_V2_MAINNET,
+        url: process.env.XLAYER_MAINNET as string,
+        accounts: [process.env.USER_PRIVATE_KEY as string],
+      },
   },
   etherscan: {
     apiKey: {
@@ -96,7 +101,7 @@ const config: HardhatUserConfig = {
       },
       {
         network: 'scroll_mainnet',
-        chainId: 534351,
+        chainId: 534352,
         urls: {
           apiURL: 'https://api.scrollscan.com/api',
           browserURL: 'https://scrollscan.build',

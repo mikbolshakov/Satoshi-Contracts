@@ -393,6 +393,13 @@
   },
   {
     "inputs": [],
+    "name": "enableTheTransfer",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "endpoint",
     "outputs": [{ "internalType": "contract ILayerZeroEndpointV2", "name": "", "type": "address" }],
     "stateMutability": "view",
@@ -530,7 +537,7 @@
           { "internalType": "uint256", "name": "amount", "type": "uint256" },
           { "internalType": "bytes32", "name": "salt", "type": "bytes32" }
         ],
-        "internalType": "struct RunnerOmni.MintingParams",
+        "internalType": "struct CoinTest.MintingParams",
         "name": "_mintingParams",
         "type": "tuple"
       }
@@ -847,6 +854,13 @@
     "name": "sharedDecimals",
     "outputs": [{ "internalType": "uint8", "name": "", "type": "uint8" }],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "stopTheTransfer",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
