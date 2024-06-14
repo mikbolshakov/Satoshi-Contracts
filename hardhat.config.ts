@@ -53,10 +53,10 @@ const config: HardhatUserConfig = {
       accounts: [process.env.USER_PRIVATE_KEY as string],
     },
     xlayer_mainnet: {
-        eid: EndpointId.XLAYER_V2_MAINNET,
-        url: process.env.XLAYER_MAINNET as string,
-        accounts: [process.env.USER_PRIVATE_KEY as string],
-      },
+      eid: EndpointId.XLAYER_V2_MAINNET,
+      url: process.env.XLAYER_MAINNET as string,
+      accounts: [process.env.USER_PRIVATE_KEY as string],
+    },
   },
   etherscan: {
     apiKey: {

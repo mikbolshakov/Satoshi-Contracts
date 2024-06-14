@@ -3,15 +3,17 @@ import { config } from 'dotenv';
 import { Wallet } from 'ethers';
 import { joinSignature } from 'ethers/lib/utils';
 import { TypedDataUtils } from 'ethers-eip712';
-import abiRunner from '../ABI/abiRunner2060coin.json';
+import contractAbi from '../ABI/abiRunner2060coin.json';
+import { chainParams as source } from '../chainParams/ethSepoliaParams';
 config();
 
 // npx ts-node scripts/mintCoinByUser.ts
-const erc20Linea = '0x4F2B0b9f441EF3C04a81eEB84827a91859Ac31f2';
-const provider = new ethers.providers.JsonRpcProvider(process.env.LINEA_MAINNET);
+const provider = new ethers.providers.JsonRpcProvider(source.rpcUrl);
+const contract = new ethers.Contract(source.contractAddress, contractAbi, provider);
+
+const mintAmount = ethers.utils.parseEther('1000');
 const user = new ethers.Wallet(process.env.USER_PRIVATE_KEY as string, provider);
 const admin = new ethers.Wallet(process.env.ADMIN_PRIVATE_KEY as string, provider);
-const contract = new ethers.Contract(erc20Linea, abiRunner, provider);
 
 interface MintInterface {
   userAddress: string;
@@ -20,9 +22,7 @@ interface MintInterface {
 }
 
 class BackendMock {
-  /// The EIP-712 domain name used for computing the domain separator.
   DOMAIN_NAME = 'RunnerOmni';
-  /// The EIP-712 domain version used for computing the domain separator.
   DOMAIN_VERSION = 'V1';
 
   maintainer: Wallet;
@@ -76,14 +76,19 @@ class BackendMock {
   }
 }
 
+function generateSalt(): string {
+  const timestamp = Math.floor(Date.now() / 1000);
+  return ethers.utils.keccak256(ethers.utils.defaultAbiCoder.encode(['uint256'], [timestamp]));
+}
+
 async function mint() {
   try {
-    let backend = new BackendMock(59144, contract.address, admin);
+    let backend = new BackendMock(source.chainId, contract.address, admin);
 
     let mintOne = {
       userAddress: user.address,
-      amount: ethers.utils.parseEther('1000'),
-      salt: '0x557b141b8bcd3ba17815cd76811f1fca1cabaa9d51f7c00712606970f01d6e37',
+      amount: mintAmount,
+      salt: generateSalt(),
     };
     let signatureOne = backend.signMintMessage(mintOne);
 
@@ -91,7 +96,7 @@ async function mint() {
 
     await tx.wait();
   } catch (error: any) {
-    console.error('Minting error:', error);
+    console.error('Minting error:', error.message);
   }
 }
 

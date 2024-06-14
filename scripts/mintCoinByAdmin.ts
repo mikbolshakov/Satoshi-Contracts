@@ -1,20 +1,19 @@
 import { ethers } from 'ethers';
 import { config } from 'dotenv';
-import abiRunner from '../ABI/abiRunner2060coin.json';
+import contractAbi from '../ABI/abiRunner2060coin.json';
+import { chainParams as source } from '../chainParams/ethSepoliaParams';
 config();
 
 // npx ts-node scripts/mintCoinByAdmin.ts
-const erc20Linea = '0x4d65faD5bb34A586a9537FFF8E621B4Ba30720D9';
+const provider = new ethers.providers.JsonRpcProvider(source.rpcUrl);
+const contract = new ethers.Contract(source.contractAddress, contractAbi, provider);
 
-const provider = new ethers.providers.JsonRpcProvider(process.env.LINEA_SEPOLIA);
+const mintAmount = ethers.utils.parseEther('1000');
 const admin = new ethers.Wallet(process.env.ADMIN_PRIVATE_KEY as string, provider);
-const contract = new ethers.Contract(erc20Linea, abiRunner, provider);
 
-export async function setPeer() {
+export async function mint() {
   try {
-    let tx = await contract
-      .connect(admin)
-      .mintByAdmin(admin.address, ethers.utils.parseEther('1000'));
+    let tx = await contract.connect(admin).mintByAdmin(admin.address, mintAmount);
 
     await tx.wait();
   } catch (error: any) {
@@ -22,4 +21,4 @@ export async function setPeer() {
   }
 }
 
-setPeer();
+mint();

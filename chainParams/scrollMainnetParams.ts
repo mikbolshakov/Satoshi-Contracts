@@ -4,6 +4,7 @@ config();
 export const chainParams = {
   rpcUrl: process.env.SCROLL_MAINNET as string,
   privateKey: process.env.USER_PRIVATE_KEY as string,
-  contractAddress: '0x6bF27b83fC96AD3873610d69513d266c5F7DF372',
+  contractAddress: '0x4f2b0b9f441ef3c04a81eeb84827a91859ac31f2',
   eid: 30214,
+  chainId: 534352,
 };

@@ -2,11 +2,13 @@ import { ethers } from 'ethers';
 import { Options } from '@layerzerolabs/lz-v2-utilities';
 import contractAbi from '../ABI/abiRunner2060coin.json';
 import { chainParams as source } from '../chainParams/ethSepoliaParams';
-import { chainParams as destination } from '../chainParams/scrollSepoliaParams';
+import { chainParams as destination } from '../chainParams/baseSepoliaParams';
 
 // npx hardhat run scripts/transferCoin.ts
 const amount = '10';
-const LAYERZERO_ENDPOINT_ADDRESS = '0x1a44076050125825900e736c501f859c50fE728c';
+
+// const LAYERZERO_ENDPOINT_ADDRESS = '0x1a44076050125825900e736c501f859c50fE728c'; // mainnet
+const LAYERZERO_ENDPOINT_ADDRESS = '0x6EDCE65403992e310A62460808c4b910D972f10f'; // testnet
 
 async function transferTokens() {
   const sourceProvider = new ethers.providers.JsonRpcProvider(source.rpcUrl);
@@ -68,6 +70,7 @@ async function transferTokens() {
   }
 
   const options = Options.newOptions().addExecutorLzReceiveOption(20000, 0).toHex().toString();
+  console.log('options:', options);
 
   const sendParam = {
     dstEid: destination.eid,
