@@ -45,10 +45,10 @@ const config: HardhatUserConfig = {
     linea_mainnet: {
       eid: 30183,
       url: process.env.LINEA_MAINNET as string,
-      accounts: [process.env.USER_PRIVATE_KEY as string],
+      accounts: [process.env.NFT_PRIVATE_KEY as string],
     },
     scroll_mainnet: {
-      eid: EndpointId.SCROLL_V2_MAINNET,
+      eid: 30214,
       url: process.env.SCROLL_MAINNET as string,
       accounts: [process.env.USER_PRIVATE_KEY as string],
     },
@@ -57,14 +57,26 @@ const config: HardhatUserConfig = {
       url: process.env.XLAYER_MAINNET as string,
       accounts: [process.env.USER_PRIVATE_KEY as string],
     },
+    ethereum_mainnet: {
+      eid: 30101,
+      url: process.env.ETH_MAINNET as string,
+      accounts: [process.env.USER_PRIVATE_KEY as string],
+    },
+    base_mainnet: {
+      eid: 30184,
+      url: process.env.BASE_MAINNET as string,
+      accounts: [process.env.USER_PRIVATE_KEY as string],
+    },
   },
   etherscan: {
     apiKey: {
       linea_sepolia: process.env.LINEASCAN_API_KEY as string,
       scroll_sepolia: process.env.SCROLLSCAN_API_KEY as string,
+      ethereum_mainnet: process.env.ETHERSCAN_API_KEY as string,
       ethereum_sepolia: process.env.ETHERSCAN_API_KEY as string,
       linea_mainnet: process.env.LINEASCAN_API_KEY as string,
       scroll_mainnet: process.env.SCROLLSCAN_API_KEY as string,
+      base_mainnet: process.env.BASESCAN_API_KEY as string,
     },
     customChains: [
       {
@@ -105,6 +117,14 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: 'https://api.scrollscan.com/api',
           browserURL: 'https://scrollscan.build',
+        },
+      },
+      {
+        network: 'base_mainnet',
+        chainId: 8453,
+        urls: {
+          apiURL: 'https://api.basescan.com/api',
+          browserURL: 'https://basescan.build',
         },
       },
     ],

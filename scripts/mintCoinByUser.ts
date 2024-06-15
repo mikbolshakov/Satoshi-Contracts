@@ -4,7 +4,7 @@ import { Wallet } from 'ethers';
 import { joinSignature } from 'ethers/lib/utils';
 import { TypedDataUtils } from 'ethers-eip712';
 import contractAbi from '../ABI/abiRunner2060coin.json';
-import { chainParams as source } from '../chainParams/ethSepoliaParams';
+import { chainParams as source } from '../chainParams/scrollMainnetParams';
 config();
 
 // npx ts-node scripts/mintCoinByUser.ts
@@ -95,6 +95,7 @@ async function mint() {
     let tx = await contract.connect(user).mint(signatureOne, mintOne);
 
     await tx.wait();
+    console.log('Mint success');
   } catch (error: any) {
     console.error('Minting error:', error.message);
   }
