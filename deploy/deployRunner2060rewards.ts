@@ -14,8 +14,6 @@ async function main() {
     royaltyReceiver,
     feeNumerator,
     adminAddress,
-    'Runner2060rewards',
-    'RT',
   );
 
   await runner2060.deployed();
@@ -25,14 +23,7 @@ async function main() {
 
   await hre.run('verify:verify', {
     address: runner2060.address,
-    constructorArguments: [
-      maintainer,
-      royaltyReceiver,
-      feeNumerator,
-      adminAddress,
-      'Runner2060rewards',
-      'RT',
-    ],
+    constructorArguments: [maintainer, royaltyReceiver, feeNumerator, adminAddress],
     contract: 'contracts/Runner2060rewards.sol:Runner2060rewards',
   });
 }

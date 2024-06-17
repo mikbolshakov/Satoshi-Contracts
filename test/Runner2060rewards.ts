@@ -40,8 +40,6 @@ describe('Runner2060rewards tests', () => {
       admin.address,
       fee,
       admin.address,
-      'Runner2060rewards',
-      'SuRunRewards',
     );
 
     expect(runner2060.address).to.not.eq(ethers.constants.AddressZero);
@@ -268,6 +266,21 @@ describe('Runner2060rewards tests', () => {
     expect(await nftContract.uri(secondTokenId)).to.be.eq(
       'ipfs://QmU48M65weZGtmVUBVbj1hgfnozAsSgoKhgZ3NyGK24pMB/2.json',
     );
+  });
+
+  it('Burn tokens by admin', async () => {
+    expect(await nftContract.balanceOf(user3.address, zeroTokenId)).to.be.eq(tokenAmount);
+    expect(await nftContract.balanceOf(user3.address, firstTokenId)).to.be.eq(tokenAmount);
+    expect(await nftContract.balanceOf(user3.address, secondTokenId)).to.be.eq(tokenAmount);
+
+    expect(nftContract.connect(user1).burn(user3.address, firstTokenId, tokenAmount)).to.be
+      .revertedWithCustomError; // onlyOwner
+
+    expect(await nftContract.balanceOf(user3.address, firstTokenId)).to.be.eq(tokenAmount);
+
+    await nftContract.connect(admin).burn(user3.address, firstTokenId, tokenAmount);
+
+    expect(await nftContract.balanceOf(user3.address, firstTokenId)).to.be.eq(zeroAmount);
   });
 
   it('Set mint maintainer', async () => {

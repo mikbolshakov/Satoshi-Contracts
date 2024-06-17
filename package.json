@@ -16,7 +16,7 @@
     "@layerzerolabs/lz-evm-v1-0.7": "~2.3.3",
     "@layerzerolabs/lz-v2-utilities": "~2.3.3",
     "@layerzerolabs/toolbox-hardhat": "~0.2.21",
-    "hardhat": "^2.22.2",
+    "hardhat": "^2.22.5",
     "prettier": "^3.2.5"
   },
   "dependencies": {

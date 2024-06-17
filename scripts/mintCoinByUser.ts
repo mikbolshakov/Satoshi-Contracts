@@ -11,9 +11,9 @@ config();
 const provider = new ethers.providers.JsonRpcProvider(source.rpcUrl);
 const contract = new ethers.Contract(source.contractAddress, contractAbi, provider);
 
-const mintAmount = ethers.utils.parseEther('1000');
 const user = new ethers.Wallet(process.env.USER_PRIVATE_KEY as string, provider);
 const admin = new ethers.Wallet(process.env.ADMIN_PRIVATE_KEY as string, provider);
+const mintAmount = ethers.utils.parseEther('1000');
 
 interface MintInterface {
   userAddress: string;

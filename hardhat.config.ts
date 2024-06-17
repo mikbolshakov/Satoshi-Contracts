@@ -45,7 +45,7 @@ const config: HardhatUserConfig = {
     linea_mainnet: {
       eid: 30183,
       url: process.env.LINEA_MAINNET as string,
-      accounts: [process.env.NFT_PRIVATE_KEY as string],
+      accounts: [process.env.USER_PRIVATE_KEY as string],
     },
     scroll_mainnet: {
       eid: 30214,

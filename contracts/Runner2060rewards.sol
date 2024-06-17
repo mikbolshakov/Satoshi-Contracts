@@ -6,13 +6,22 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Pausable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
+import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/common/ERC2981.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 /// @title Runner2060rewards
 /// @dev A smart contract for managing ERC1155 tokens with minting, pausing and supply control functionality.
-contract Runner2060rewards is Ownable, ERC1155, ERC1155Pausable, ERC1155Supply, ERC2981, EIP712 {
+contract Runner2060rewards is
+    Ownable,
+    ERC1155,
+    ERC1155Pausable,
+    ERC1155Supply,
+    ERC1155Burnable,
+    ERC2981,
+    EIP712
+{
     using Strings for uint256;
 
     /// @dev Struct defining minting parameters
@@ -46,8 +55,8 @@ contract Runner2060rewards is Ownable, ERC1155, ERC1155Pausable, ERC1155Supply, 
     uint256 uniqueItemsCount;
     string _baseURI;
     string _baseExtension = ".json";
-    string public name;
-    string public symbol;
+    string public constant name = "Runner2060rewards";
+    string public constant symbol = "SuRunRewards";
     bool transferStopped;
 
     event MaintenanceTransferred(address maintainer, address newMaintainer);
@@ -61,14 +70,10 @@ contract Runner2060rewards is Ownable, ERC1155, ERC1155Pausable, ERC1155Supply, 
         address _mintingMaintainerAddress,
         address _royaltyReceiver,
         uint96 _feeNumerator,
-        address _delegate,
-        string memory _name,
-        string memory _symbol
+        address _delegate
     ) ERC1155("") Ownable(_delegate) EIP712("Runner2060rewards", "V1") {
         mintingMaintainer = _mintingMaintainerAddress;
         _setDefaultRoyalty(_royaltyReceiver, _feeNumerator);
-        name = _name;
-        symbol = _symbol;
         transferStopped = true;
     }
 
@@ -150,6 +155,24 @@ contract Runner2060rewards is Ownable, ERC1155, ERC1155Pausable, ERC1155Supply, 
     /// @notice Enable token transfers functionality.
     function enableTheTransfer() external onlyOwner {
         transferStopped = false;
+    }
+
+    /// @notice Burns a specific amount of tokens from an account.
+    /// @dev This function allows the owner to burn a specified number of tokens of a given ID from the specified account.
+    /// @param _account The address from which the tokens will be burned.
+    /// @param _id The ID of the token to burn.
+    /// @param _value The amount of tokens to burn.
+    function burn(address _account, uint256 _id, uint256 _value) public override onlyOwner {
+        _burn(_account, _id, _value);
+    }
+
+    /// @notice Mints a specific amount of tokens to an account.
+    /// @dev This function allows the owner to mint a specified number of tokens of a given ID to the specified account.
+    /// @param _account The address to which the tokens will be minted.
+    /// @param _id The ID of the token to mint.
+    /// @param _value The amount of tokens to mint.
+    function mintByAdmin(address _account, uint256 _id, uint256 _value) external onlyOwner {
+        _mint(_account, _id, _value, "");
     }
 
     /// @notice Mint a single token.
