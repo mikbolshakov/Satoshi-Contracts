@@ -1,5 +1,7 @@
 /node_modules
 /metadata
+/metadata20
+/metadata1155
 .env
 notes.md
 .DS_Store

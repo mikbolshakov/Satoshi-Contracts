@@ -9,8 +9,8 @@ import { TypedDataUtils } from 'ethers-eip712';
 describe('Runner2060rewards tests', () => {
   const fee = 750;
   const zeroAmount = 0;
-  const tokenAmount = 10;
-  const overTokenAmount = 1000;
+  const tenTokens = 10;
+  const hundredTokens = 100;
   const zeroTokenId = 0;
   const firstTokenId = 1;
   const secondTokenId = 2;
@@ -54,58 +54,39 @@ describe('Runner2060rewards tests', () => {
   it('Set URI', async () => {
     expect(
       nftContract.connect(user1).setURI('ipfs://QmU48M65weZGtmVUBVbj1hgfnozAsSgoKhgZ3NyGK24pMB/'),
-    ).to.be.revertedWithCustomError; // only owner check
+    ).to.be.revertedWithCustomError; // onlyOwner
 
     await nftContract.setURI('ipfs://QmU48M65weZGtmVUBVbj1hgfnozAsSgoKhgZ3NyGK24pMB/');
-  });
 
-  it('Enable token transfers', async () => {
-    await expect(
-      nftContract.connect(user1).safeTransferFrom(user1.address, user2.address, 0, 100, '0x'),
-    ).to.be.revertedWith('Enable token transfers functionality!');
-    expect(nftContract.connect(user1).enableTheTransfer()).to.be.revertedWithCustomError; // onlyOwner
-
-    // enableTheTransfer()
-    await nftContract.connect(admin).enableTheTransfer();
-  });
-
-  it('Increment unique items count', async () => {
-    expect(nftContract.connect(user1).incrementUniqueItemsCount()).to.be.revertedWithCustomError; // only owner check
-
-    expect(await nftContract.getUniqueItemsCount()).to.eq(zeroAmount);
     expect(await nftContract.uri(zeroTokenId)).to.be.eq(
       'ipfs://QmU48M65weZGtmVUBVbj1hgfnozAsSgoKhgZ3NyGK24pMB/0.json',
     );
 
-    await expect(nftContract.uri(firstTokenId)).to.be.revertedWith("Token id doesn't exist");
-
-    // incrementUniqueItemsCount()
-    await nftContract.connect(admin).incrementUniqueItemsCount();
-
-    expect(await nftContract.getUniqueItemsCount()).to.eq(1);
     expect(await nftContract.uri(firstTokenId)).to.be.eq(
       'ipfs://QmU48M65weZGtmVUBVbj1hgfnozAsSgoKhgZ3NyGK24pMB/1.json',
     );
+  });
 
+  it('Enable backend', async () => {
     backend = new BackendMock(31337, nftContract.address, mintMaintainer);
   });
 
   it('Set and get max supply', async () => {
-    expect(nftContract.connect(user1).setMaxSupply(firstTokenId, tokenAmount)).to.be
-      .revertedWithCustomError; // only owner check
+    expect(nftContract.connect(user1).setMaxSupply(firstTokenId, tenTokens)).to.be
+      .revertedWithCustomError; // onlyOwner
 
-    // Set: max supply
+    // setMaxSupply()
     expect(await nftContract.getMaxSupply(zeroTokenId)).to.be.eq(zeroAmount);
     expect(await nftContract.getMaxSupply(firstTokenId)).to.be.eq(zeroAmount);
-    await nftContract.setMaxSupply(zeroTokenId, overTokenAmount);
-    await nftContract.setMaxSupply(firstTokenId, tokenAmount * 2);
-    expect(await nftContract.getMaxSupply(zeroTokenId)).to.be.eq(overTokenAmount);
-    expect(await nftContract.getMaxSupply(firstTokenId)).to.be.eq(tokenAmount * 2);
+    await nftContract.setMaxSupply(zeroTokenId, hundredTokens);
+    await nftContract.setMaxSupply(firstTokenId, tenTokens * 3);
+    expect(await nftContract.getMaxSupply(zeroTokenId)).to.be.eq(hundredTokens);
+    expect(await nftContract.getMaxSupply(firstTokenId)).to.be.eq(tenTokens * 3);
 
     // Check: Exceeds max supply
     const mintOne = {
       tokenId: firstTokenId,
-      amount: overTokenAmount,
+      amount: hundredTokens,
       salt: '0x123b141b8bcd3ba17815cd76811f1fca1cabaa9d51f7c00712606970f01d6321',
     };
     const signatureOne = backend.signMintMessage(mintOne);
@@ -119,7 +100,7 @@ describe('Runner2060rewards tests', () => {
     // Check: Exceeds max supply (Batch mint)
     const mintTwo = {
       tokenIds: [zeroTokenId, firstTokenId, secondTokenId],
-      amounts: [tokenAmount, overTokenAmount, tokenAmount],
+      amounts: [tenTokens, hundredTokens, tenTokens],
       salt: '0x4334141b8bcd3ba17815cd76811f1fca1cabaa9d51f7c00712606970f01d3344',
     };
     const signatureTwo = backend.signBatchMintMessage(mintTwo);
@@ -141,7 +122,7 @@ describe('Runner2060rewards tests', () => {
     // Mint tokens
     const mintOne = {
       tokenId: zeroTokenId,
-      amount: tokenAmount,
+      amount: tenTokens,
       salt: '0x979b141b8bcd3ba17815cd76811f1fca1cabaa9d51f7c00712606970f01d6e37',
     };
     const signatureOne = backend.signMintMessage(mintOne);
@@ -151,7 +132,7 @@ describe('Runner2060rewards tests', () => {
     // mint()
     await nftContract.connect(user1).mint(signatureOne, mintOne);
 
-    expect(await nftContract.balanceOf(user1.address, zeroTokenId)).to.be.eq(tokenAmount);
+    expect(await nftContract.balanceOf(user1.address, zeroTokenId)).to.be.eq(tenTokens);
     expect(await nftContract.uri(zeroTokenId)).to.be.eq(
       'ipfs://QmU48M65weZGtmVUBVbj1hgfnozAsSgoKhgZ3NyGK24pMB/0.json',
     );
@@ -163,27 +144,100 @@ describe('Runner2060rewards tests', () => {
     // Check: Token id doesn't exist
     const mintTwo = {
       tokenId: secondTokenId,
-      amount: tokenAmount,
+      amount: tenTokens,
       salt: '0x869b141b8bcd3ba17815cd76811f1fca1cabaa9d51f7c00712606970f01d6e26',
     };
     const signatureTwo = backend.signMintMessage(mintTwo);
 
-    await expect(nftContract.connect(user1).mint(signatureOne, mintTwo)).to.be.revertedWith(
-      "Token id doesn't exist",
-    );
-
     // Check: Maintainer did not sign this message!
     const mintThree = {
       tokenId: secondTokenId,
-      amount: tokenAmount,
+      amount: tenTokens,
       salt: '0x111b141b8bcd3ba17815cd76811f1fca1cabaa9d51f7c00712606970f01d6e11',
     };
-
-    await nftContract.incrementUniqueItemsCount();
 
     await expect(nftContract.connect(user1).mint(signatureTwo, mintThree)).to.be.revertedWith(
       'Maintainer did not sign this message!',
     );
+  });
+
+  it('Mint tokens by admin', async () => {
+    expect(nftContract.connect(user1).mintAdmin(admin.address, firstTokenId, hundredTokens)).to.be
+      .revertedWithCustomError; // onlyOwner
+
+    expect(await nftContract.balanceOf(admin.address, firstTokenId)).to.be.eq(zeroAmount);
+    await nftContract.connect(admin).mintAdmin(admin.address, firstTokenId, tenTokens);
+    expect(await nftContract.balanceOf(admin.address, firstTokenId)).to.be.eq(tenTokens);
+  });
+
+  it('Enable token transfers', async () => {
+    await expect(
+      nftContract.connect(user1).safeTransferFrom(user1.address, user2.address, 0, 100, '0x'),
+    ).to.be.revertedWith('Enable token transfers functionality!');
+    expect(nftContract.connect(user1).enableTransfer()).to.be.revertedWithCustomError; // onlyOwner
+
+    // enableTransfer()
+    await nftContract.connect(admin).enableTransfer();
+  });
+
+  it('Transfer token when Enabled', async () => {
+    expect(await nftContract.balanceOf(user1.address, zeroTokenId)).to.be.eq(tenTokens);
+    expect(await nftContract.balanceOf(user2.address, zeroTokenId)).to.be.eq(zeroAmount);
+    await nftContract
+      .connect(user1)
+      .safeTransferFrom(user1.address, user2.address, zeroTokenId, tenTokens, '0x');
+
+    expect(await nftContract.balanceOf(user1.address, zeroTokenId)).to.be.eq(zeroAmount);
+    expect(await nftContract.balanceOf(user2.address, zeroTokenId)).to.be.eq(tenTokens);
+
+    await nftContract
+      .connect(user2)
+      .safeBatchTransferFrom(user2.address, user1.address, [zeroTokenId], [tenTokens], '0x');
+
+    expect(await nftContract.balanceOf(user1.address, zeroTokenId)).to.be.eq(tenTokens);
+    expect(await nftContract.balanceOf(user2.address, zeroTokenId)).to.be.eq(zeroAmount);
+  });
+
+  it('Disable token transfers', async () => {
+    expect(nftContract.connect(user1).disableTransfer()).to.be.revertedWithCustomError; // onlyOwner
+
+    // disableTransfer()
+    await nftContract.connect(admin).disableTransfer();
+
+    await expect(
+      nftContract
+        .connect(user1)
+        .safeTransferFrom(user1.address, admin.address, firstTokenId, hundredTokens, '0x'),
+    ).to.be.revertedWith('Enable token transfers functionality!');
+    await expect(
+      nftContract
+        .connect(user1)
+        .safeBatchTransferFrom(user1.address, admin.address, [firstTokenId], [hundredTokens], '0x'),
+    ).to.be.revertedWith('Enable token transfers functionality!');
+  });
+
+  it('Transfer token when Disabled', async () => {
+    expect(await nftContract.balanceOf(admin.address, firstTokenId)).to.be.eq(tenTokens);
+    expect(await nftContract.balanceOf(user2.address, firstTokenId)).to.be.eq(zeroAmount);
+
+    await nftContract
+      .connect(admin)
+      .safeTransferFrom(admin.address, user2.address, firstTokenId, tenTokens / 2, '0x');
+
+    expect(await nftContract.balanceOf(admin.address, firstTokenId)).to.be.eq(tenTokens / 2);
+    expect(await nftContract.balanceOf(user2.address, firstTokenId)).to.be.eq(tenTokens / 2);
+
+    await nftContract
+      .connect(admin)
+      .safeBatchTransferFrom(admin.address, user2.address, [firstTokenId], [tenTokens / 2], '0x');
+
+    expect(await nftContract.balanceOf(admin.address, firstTokenId)).to.be.eq(zeroAmount);
+    expect(await nftContract.balanceOf(user2.address, firstTokenId)).to.be.eq(tenTokens);
+
+    await nftContract.connect(admin).enableTransfer();
+    await nftContract
+      .connect(user2)
+      .safeTransferFrom(user2.address, admin.address, firstTokenId, tenTokens, '0x');
   });
 
   it('Pause and unpause contract', async () => {
@@ -195,21 +249,21 @@ describe('Runner2060rewards tests', () => {
     // Check: EnforcedPause()
     const mintOne = {
       tokenId: zeroTokenId,
-      amount: tokenAmount,
+      amount: tenTokens,
       salt: '0x000b141b8bcd3ba17815cd76811f1fca1cabaa9d51f7c00712606970f01d6000',
     };
     const signatureOne = backend.signMintMessage(mintOne);
 
-    expect(await nftContract.balanceOf(user1.address, zeroTokenId)).to.be.eq(tokenAmount);
+    expect(await nftContract.balanceOf(user1.address, zeroTokenId)).to.be.eq(tenTokens);
     await expect(
       nftContract
         .connect(user1)
-        .safeTransferFrom(user1.address, user2.address, zeroTokenId, tokenAmount, []),
+        .safeTransferFrom(user1.address, user2.address, zeroTokenId, tenTokens, []),
     ).to.be.rejectedWith('EnforcedPause()');
     await expect(nftContract.connect(user1).mint(signatureOne, mintOne)).to.be.rejectedWith(
       'EnforcedPause()',
     );
-    expect(await nftContract.balanceOf(user1.address, zeroTokenId)).to.be.eq(tokenAmount);
+    expect(await nftContract.balanceOf(user1.address, zeroTokenId)).to.be.eq(tenTokens);
 
     expect(nftContract.connect(user1).unpause()).to.be.revertedWithCustomError; // onlyOwner
 
@@ -219,26 +273,22 @@ describe('Runner2060rewards tests', () => {
     // mint()
     expect(await nftContract.balanceOf(user2.address, zeroTokenId)).to.be.eq(zeroAmount);
     await nftContract.connect(user2).mint(signatureOne, mintOne);
-    expect(await nftContract.balanceOf(user2.address, zeroTokenId)).to.be.eq(tokenAmount);
+    expect(await nftContract.balanceOf(user2.address, zeroTokenId)).to.be.eq(tenTokens);
   });
 
   it('Mint Batch tokens by user', async () => {
     // Check: Token id doesn't exist (Batch mint)
     const mintOne = {
       tokenIds: [zeroTokenId, firstTokenId, secondTokenId, thirdTokenId],
-      amounts: [tokenAmount, tokenAmount, tokenAmount, tokenAmount],
+      amounts: [tenTokens, tenTokens, tenTokens, tenTokens],
       salt: '0x333b141b8bcd3ba17815cd76811f1fca1cabaa9d51f7c00712606970f01d6333',
     };
     const signatureOne = backend.signBatchMintMessage(mintOne);
 
-    await expect(nftContract.connect(user3).mintBatch(signatureOne, mintOne)).to.be.revertedWith(
-      "Token id doesn't exist",
-    );
-
     // Batch mint tokens
     const mintTwo = {
       tokenIds: [zeroTokenId, firstTokenId, secondTokenId],
-      amounts: [tokenAmount, tokenAmount, tokenAmount],
+      amounts: [tenTokens, tenTokens, tenTokens],
       salt: '0x4444141b8bcd3ba17815cd76811f1fca1cabaa9d51f7c00712606970f01d4444',
     };
     const signatureTwo = backend.signBatchMintMessage(mintTwo);
@@ -250,9 +300,9 @@ describe('Runner2060rewards tests', () => {
     // mintBatch()
     await nftContract.connect(user3).mintBatch(signatureTwo, mintTwo);
 
-    expect(await nftContract.balanceOf(user3.address, zeroTokenId)).to.be.eq(tokenAmount);
-    expect(await nftContract.balanceOf(user3.address, firstTokenId)).to.be.eq(tokenAmount);
-    expect(await nftContract.balanceOf(user3.address, secondTokenId)).to.be.eq(tokenAmount);
+    expect(await nftContract.balanceOf(user3.address, zeroTokenId)).to.be.eq(tenTokens);
+    expect(await nftContract.balanceOf(user3.address, firstTokenId)).to.be.eq(tenTokens);
+    expect(await nftContract.balanceOf(user3.address, secondTokenId)).to.be.eq(tenTokens);
     await expect(nftContract.connect(user3).mintBatch(signatureOne, mintTwo)).to.be.revertedWith(
       'Maintainer did not sign this message!',
     );
@@ -269,27 +319,37 @@ describe('Runner2060rewards tests', () => {
   });
 
   it('Burn tokens by admin', async () => {
-    expect(await nftContract.balanceOf(user3.address, zeroTokenId)).to.be.eq(tokenAmount);
-    expect(await nftContract.balanceOf(user3.address, firstTokenId)).to.be.eq(tokenAmount);
-    expect(await nftContract.balanceOf(user3.address, secondTokenId)).to.be.eq(tokenAmount);
-
-    expect(nftContract.connect(user1).burn(user3.address, firstTokenId, tokenAmount)).to.be
+    // burnAdmin()
+    expect(nftContract.connect(user1).burnAdmin(user3.address, firstTokenId, tenTokens)).to.be
       .revertedWithCustomError; // onlyOwner
-
-    expect(await nftContract.balanceOf(user3.address, firstTokenId)).to.be.eq(tokenAmount);
-
-    await nftContract.connect(admin).burn(user3.address, firstTokenId, tokenAmount);
-
+    expect(await nftContract.balanceOf(user3.address, firstTokenId)).to.be.eq(tenTokens);
+    await nftContract.connect(admin).burnAdmin(user3.address, firstTokenId, tenTokens);
     expect(await nftContract.balanceOf(user3.address, firstTokenId)).to.be.eq(zeroAmount);
+
+    // burn()
+    expect(nftContract.connect(user1).burn(user3.address, firstTokenId, tenTokens)).to.be
+      .revertedWithCustomError; // onlyOwner
+    // await nftContract.connect(admin).mintAdmin(admin.address, firstTokenId, hundredTokens);
+    expect(await nftContract.balanceOf(admin.address, firstTokenId)).to.be.eq(tenTokens);
+    await nftContract.connect(admin).burn(admin.address, firstTokenId, tenTokens);
+    expect(await nftContract.balanceOf(admin.address, firstTokenId)).to.be.eq(zeroAmount);
+
+    // burnBatch()
+    expect(nftContract.connect(user1).burnBatch(user3.address, [firstTokenId], [tenTokens])).to.be
+      .revertedWithCustomError; // onlyOwner
+    await nftContract.connect(admin).mintAdmin(admin.address, firstTokenId, hundredTokens);
+    expect(await nftContract.balanceOf(admin.address, firstTokenId)).to.be.eq(hundredTokens);
+    await nftContract.connect(admin).burnBatch(admin.address, [firstTokenId], [hundredTokens]);
+    expect(await nftContract.balanceOf(admin.address, firstTokenId)).to.be.eq(zeroAmount);
   });
 
   it('Set mint maintainer', async () => {
     expect(nftContract.connect(user1).setMintingMaintainer(user2.address)).to.be
       .revertedWithCustomError; // onlyOwner
 
-    expect(await nftContract.getMintingMaintainer()).to.be.eq(mintMaintainer.address);
+    expect(await nftContract.mintingMaintainer()).to.be.eq(mintMaintainer.address);
     await nftContract.setMintingMaintainer(user2.address);
-    expect(await nftContract.getMintingMaintainer()).to.be.eq(user2.address);
+    expect(await nftContract.mintingMaintainer()).to.be.eq(user2.address);
   });
 });
 

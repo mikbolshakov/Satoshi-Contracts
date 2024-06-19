@@ -11,9 +11,9 @@ import "@openzeppelin/contracts/token/common/ERC2981.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-/// @title Runner2060rewards
+/// @title RewardsTest
 /// @dev A smart contract for managing ERC1155 tokens with minting, pausing and supply control functionality.
-contract Runner2060rewards is
+contract RewardsTest is
     Ownable,
     ERC1155,
     ERC1155Pausable,
@@ -53,8 +53,8 @@ contract Runner2060rewards is
 
     string _baseURI;
     string _baseExtension = ".json";
-    string public constant name = "Runner2060rewards";
-    string public constant symbol = "SuRunRewards";
+    string public constant name = "RewardsTest";
+    string public constant symbol = "RT";
     bool public transferStopped;
     address public mintingMaintainer;
 

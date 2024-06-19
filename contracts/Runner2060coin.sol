@@ -24,8 +24,8 @@ contract Runner2060coin is OFT, ERC20Burnable, ERC20Pausable, EIP712 {
 
     // signed message => bool verified
     mapping(bytes => bool) verifiedMessages;
-    bool transferStopped;
-    address mintingMaintainer;
+    bool public transferStopped;
+    address public mintingMaintainer;
 
     event MaintenanceTransferred(address maintainer, address newMaintainer);
 
@@ -44,13 +44,6 @@ contract Runner2060coin is OFT, ERC20Burnable, ERC20Pausable, EIP712 {
     {
         mintingMaintainer = _mintingMaintainerAddress;
         transferStopped = true;
-    }
-
-    // ------------- Getters ------------- //
-    /// @notice Get the address of the minting maintainer.
-    /// @return Address of the minting maintainer.
-    function getMintingMaintainer() external view returns (address) {
-        return mintingMaintainer;
     }
 
     // ------------- Setters ------------- //
@@ -74,27 +67,27 @@ contract Runner2060coin is OFT, ERC20Burnable, ERC20Pausable, EIP712 {
         _unpause();
     }
 
-    /// @notice Stop token transfers functionality.
-    function stopTheTransfer() external onlyOwner {
+    /// @notice Disable token transfers functionality.
+    function disableTransfer() external onlyOwner {
         transferStopped = true;
     }
 
     /// @notice Enable token transfers functionality.
-    function enableTheTransfer() external onlyOwner {
+    function enableTransfer() external onlyOwner {
         transferStopped = false;
     }
 
     /// @notice Mint ERC20 tokens by admin.
-    /// @param _to Address to which tokens are minted.
-    /// @param _amount Amount of tokens to mint.
-    function mintByAdmin(address _to, uint256 _amount) external onlyOwner {
+    /// @param _to The address to which the tokens will be minted.
+    /// @param _amount The amount of tokens to mint.
+    function mintAdmin(address _to, uint256 _amount) external onlyOwner {
         _mint(_to, _amount);
     }
 
     /// @notice Burn ERC20 tokens by admin.
-    /// @param _from Address from which tokens to burn.
-    /// @param _amount Amount of tokens to burn.
-    function burnByAdmin(address _from, uint256 _amount) external onlyOwner {
+    /// @param _from The address from which the tokens will be burned.
+    /// @param _amount The amount of tokens to burn.
+    function burnAdmin(address _from, uint256 _amount) external onlyOwner {
         _burn(_from, _amount);
     }
 
@@ -150,8 +143,32 @@ contract Runner2060coin is OFT, ERC20Burnable, ERC20Pausable, EIP712 {
         address to,
         uint256 value
     ) internal override(ERC20, ERC20Pausable) {
+        super._update(from, to, value);
+    }
+
+    /// @inheritdoc ERC20
+    function transfer(address to, uint256 value) public override returns (bool) {
         require(!transferStopped || msg.sender == owner(), "Enable token transfers functionality!");
 
-        super._update(from, to, value);
+        super.transfer(to, value);
+        return true;
+    }
+
+    /// @inheritdoc ERC20
+    function transferFrom(address from, address to, uint256 value) public override returns (bool) {
+        require(!transferStopped || msg.sender == owner(), "Enable token transfers functionality!");
+
+        super.transferFrom(from, to, value);
+        return true;
+    }
+
+    /// @inheritdoc ERC20Burnable
+    function burn(uint256 value) public override onlyOwner {
+        super.burn(value);
+    }
+
+    /// @inheritdoc ERC20Burnable
+    function burnFrom(address to, uint256 value) public override onlyOwner {
+        super.burnFrom(to, value);
     }
 }

@@ -117,29 +117,6 @@ describe('Runner2060coin tests', async () => {
     backend = new BackendMock(31337, erc20Linea.address, mintMaintainer);
   });
 
-  it('Enable token transfers', async () => {
-    await erc20Linea.connect(adminLinea).mintByAdmin(user10.address, hundredTokens);
-    expect(await erc20Linea.balanceOf(user10.address)).to.be.eq(hundredTokens);
-
-    await expect(
-      erc20Linea.connect(user10).transfer(adminLinea.address, hundredTokens),
-    ).to.be.revertedWith('Enable token transfers functionality!');
-    expect(erc20Linea.connect(user10).enableTheTransfer()).to.be.revertedWithCustomError; // onlyOwner
-
-    // enableTheTransfer()
-    await erc20Linea.connect(adminLinea).enableTheTransfer();
-    await erc20Scroll.connect(adminScroll).enableTheTransfer();
-
-    expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(zeroAmount);
-    // transfer()
-    await erc20Linea.connect(user10).transfer(user20.address, hundredTokens);
-    expect(await erc20Linea.balanceOf(user10.address)).to.be.eq(zeroAmount);
-    expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(hundredTokens);
-    // burn()
-    await erc20Linea.connect(adminLinea).burnByAdmin(user20.address, hundredTokens);
-    expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(zeroAmount);
-  });
-
   it('Mint tokens by user', async () => {
     // Mint tokens
     let mintOne = {
@@ -173,12 +150,73 @@ describe('Runner2060coin tests', async () => {
   });
 
   it('Mint tokens by admin', async () => {
-    expect(erc20Linea.connect(user10).mintByAdmin(user20.address, hundredTokens)).to.be
+    expect(erc20Linea.connect(user10).mintAdmin(user20.address, hundredTokens)).to.be
       .revertedWithCustomError; // onlyOwner
 
     expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(zeroAmount);
-    await erc20Linea.connect(adminLinea).mintByAdmin(user20.address, hundredTokens);
+    await erc20Linea.connect(adminLinea).mintAdmin(user20.address, hundredTokens);
     expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(hundredTokens);
+  });
+
+  it('Enable token transfers', async () => {
+    await expect(
+      erc20Linea.connect(user10).transfer(adminLinea.address, hundredTokens),
+    ).to.be.revertedWith('Enable token transfers functionality!');
+    expect(erc20Linea.connect(user10).enableTransfer()).to.be.revertedWithCustomError; // onlyOwner
+
+    // enableTransfer()
+    await erc20Linea.connect(adminLinea).enableTransfer();
+  });
+
+  it('Transfer token when Enabled', async () => {
+    expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(hundredTokens);
+
+    await erc20Linea.connect(user10).transfer(user20.address, hundredTokens);
+
+    expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(hundredTokens.add(hundredTokens));
+    expect(await erc20Linea.balanceOf(user10.address)).to.be.eq(thousandTokens.sub(hundredTokens));
+
+    await erc20Linea.connect(user20).approve(user20.address, hundredTokens);
+    await erc20Linea.connect(user20).transferFrom(user20.address, user10.address, hundredTokens);
+
+    expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(hundredTokens);
+    expect(await erc20Linea.balanceOf(user10.address)).to.be.eq(thousandTokens);
+  });
+
+  it('Disable token transfers', async () => {
+    expect(erc20Linea.connect(user10).disableTransfer()).to.be.revertedWithCustomError; // onlyOwner
+
+    // disableTransfer()
+    await erc20Linea.connect(adminLinea).disableTransfer();
+
+    await expect(
+      erc20Linea.connect(user10).transferFrom(user10.address, adminLinea.address, hundredTokens),
+    ).to.be.revertedWith('Enable token transfers functionality!');
+  });
+
+  it('Transfer token when Disabled', async () => {
+    expect(await erc20Linea.balanceOf(adminLinea.address)).to.be.eq(zeroAmount);
+
+    await erc20Linea.connect(adminLinea).mintAdmin(adminLinea.address, hundredTokens.mul(2));
+
+    expect(await erc20Linea.balanceOf(adminLinea.address)).to.be.eq(hundredTokens.mul(2));
+    expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(hundredTokens);
+
+    await erc20Linea.connect(adminLinea).transfer(user20.address, hundredTokens);
+
+    expect(await erc20Linea.balanceOf(adminLinea.address)).to.be.eq(hundredTokens);
+    expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(hundredTokens.mul(2));
+
+    await erc20Linea.connect(adminLinea).approve(adminLinea.address, hundredTokens);
+    await erc20Linea
+      .connect(adminLinea)
+      .transferFrom(adminLinea.address, user20.address, hundredTokens);
+
+    expect(await erc20Linea.balanceOf(adminLinea.address)).to.be.eq(zeroAmount);
+    expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(hundredTokens.mul(3));
+
+    await erc20Linea.connect(adminLinea).burnAdmin(user20.address, hundredTokens.mul(2));
+    await erc20Linea.connect(adminLinea).enableTransfer();
   });
 
   it('Pause and unpause contract', async () => {
@@ -192,7 +230,7 @@ describe('Runner2060coin tests', async () => {
       erc20Linea.connect(user10).transfer(user20.address, hundredTokens),
     ).to.be.rejectedWith('EnforcedPause()');
     await expect(
-      erc20Linea.connect(adminLinea).mintByAdmin(user20.address, hundredTokens),
+      erc20Linea.connect(adminLinea).mintAdmin(user20.address, hundredTokens),
     ).to.be.rejectedWith('EnforcedPause()');
 
     expect(erc20Linea.connect(user10).unpause()).to.be.revertedWithCustomError; // onlyOwner
@@ -200,24 +238,36 @@ describe('Runner2060coin tests', async () => {
     // unpause()
     await erc20Linea.connect(adminLinea).unpause();
 
-    // mintByAdmin()
+    // mintAdmin()
     expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(hundredTokens);
-    await erc20Linea.connect(adminLinea).mintByAdmin(user20.address, hundredTokens);
+    await erc20Linea.connect(adminLinea).mintAdmin(user20.address, hundredTokens);
     expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(hundredTokens.mul(2));
-  });
-
-  it('Burn tokens by user', async () => {
-    expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(hundredTokens.mul(2));
-    await erc20Linea.connect(user20).burn(hundredTokens);
-    expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(hundredTokens);
   });
 
   it('Burn tokens by admin', async () => {
-    expect(erc20Linea.connect(user10).burnByAdmin(user20.address, hundredTokens)).to.be
+    // burnAdmin()
+    expect(erc20Linea.connect(user10).burnAdmin(user20.address, hundredTokens)).to.be
       .revertedWithCustomError; // onlyOwner
+    expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(hundredTokens.mul(2));
+    await erc20Linea.connect(adminLinea).burnAdmin(user20.address, hundredTokens.mul(2));
+    expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(zeroAmount);
 
+    // burn()
+    expect(erc20Linea.connect(user20).burn(hundredTokens)).to.be.revertedWithCustomError; // onlyOwner
+    expect(await erc20Linea.balanceOf(adminLinea.address)).to.be.eq(zeroAmount);
+    await erc20Linea.connect(adminLinea).mintAdmin(adminLinea.address, hundredTokens);
+    expect(await erc20Linea.balanceOf(adminLinea.address)).to.be.eq(hundredTokens);
+    await erc20Linea.connect(adminLinea).burn(hundredTokens);
+    expect(await erc20Linea.balanceOf(adminLinea.address)).to.be.eq(zeroAmount);
+
+    // burnFrom()
+    expect(erc20Linea.connect(user20).burnFrom(user20.address, hundredTokens)).to.be
+      .revertedWithCustomError; // onlyOwner
+    await erc20Linea.connect(user20).approve(adminLinea.address, hundredTokens);
+    expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(zeroAmount);
+    await erc20Linea.connect(adminLinea).mintAdmin(user20.address, hundredTokens);
     expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(hundredTokens);
-    await erc20Linea.connect(adminLinea).burnByAdmin(user20.address, hundredTokens);
+    await erc20Linea.connect(adminLinea).burnFrom(user20.address, hundredTokens);
     expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(zeroAmount);
   });
 
@@ -225,13 +275,13 @@ describe('Runner2060coin tests', async () => {
     expect(erc20Linea.connect(user10).setMintingMaintainer(user20.address)).to.be
       .revertedWithCustomError; // onlyOwner
 
-    expect(await erc20Linea.getMintingMaintainer()).to.be.eq(mintMaintainer.address);
+    expect(await erc20Linea.mintingMaintainer()).to.be.eq(mintMaintainer.address);
     await erc20Linea.connect(adminLinea).setMintingMaintainer(user20.address);
-    expect(await erc20Linea.getMintingMaintainer()).to.be.eq(user20.address);
+    expect(await erc20Linea.mintingMaintainer()).to.be.eq(user20.address);
   });
 
   it('Send tokens from Linea to Scroll (adminLinea => adminScroll)', async () => {
-    await erc20Linea.connect(adminLinea).mintByAdmin(adminLinea.address, thousandTokens);
+    await erc20Linea.connect(adminLinea).mintAdmin(adminLinea.address, thousandTokens);
 
     expect(await erc20Linea.totalSupply()).to.be.eq(thousandTokens.mul(2));
     expect(await erc20Scroll.totalSupply()).to.be.eq(zeroAmount);

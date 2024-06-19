@@ -8,7 +8,7 @@ async function main() {
   const adminAddress = '0xcb0e044384Bd09f194bb82A5A7eF32C30a3d4277';
   const feeNumerator = 500;
 
-  const Runner2060 = await ethers.getContractFactory('Runner2060rewards');
+  const Runner2060 = await ethers.getContractFactory('RewardsTest');
   const runner2060 = await Runner2060.deploy(
     maintainer,
     royaltyReceiver,
@@ -17,14 +17,14 @@ async function main() {
   );
 
   await runner2060.deployed();
-  console.log(`Runner2060rewards deployed to ${runner2060.address}`);
+  console.log(`RewardsTest deployed to ${runner2060.address}`);
 
   await new Promise((resolve) => setTimeout(resolve, 10000));
 
   await hre.run('verify:verify', {
     address: runner2060.address,
     constructorArguments: [maintainer, royaltyReceiver, feeNumerator, adminAddress],
-    contract: 'contracts/Runner2060rewards.sol:Runner2060rewards',
+    contract: 'contracts/RewardsTest.sol:RewardsTest',
   });
 }
 
