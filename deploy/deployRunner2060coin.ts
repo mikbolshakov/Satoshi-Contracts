@@ -3,22 +3,22 @@ import hre from 'hardhat';
 
 // npx hardhat run deploy/deployRunner2060coin.ts --network linea_mainnet
 async function main() {
-  const maintainer = '0x6ae19a226A6Cec3E29D5dfC90C2bd6640d8d77b9';
+  const maintainer = '0xa57f7478D617aB2f8D52580833A7DD1b3556c4e2';
   const endpointLZ = '0x1a44076050125825900e736c501f859c50fE728c';
-  const adminAddress = '0xcb0e044384Bd09f194bb82A5A7eF32C30a3d4277';
+  const adminAddress = '0x1F729fA5C7fB42050c7294165d0bA0CACFDd913d';
 
-  const Runner2060 = await ethers.getContractFactory('CoinTest');
+  const Runner2060 = await ethers.getContractFactory('Runner2060coin');
   const runner2060 = await Runner2060.deploy(maintainer, endpointLZ, adminAddress);
 
   await runner2060.deployed();
-  console.log(`CoinTest deployed to ${runner2060.address}`);
+  console.log(`Runner2060coin deployed to ${runner2060.address}`);
 
   await new Promise((resolve) => setTimeout(resolve, 10000));
 
   await hre.run('verify:verify', {
     address: runner2060.address,
     constructorArguments: [maintainer, endpointLZ, adminAddress],
-    contract: 'contracts/CoinTest.sol:CoinTest',
+    contract: 'contracts/Runner2060coin.sol:Runner2060coin',
   });
 }
 

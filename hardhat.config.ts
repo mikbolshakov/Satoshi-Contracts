@@ -22,24 +22,14 @@ const config: HardhatUserConfig = {
     ],
   },
   networks: {
-    ethereum_sepolia: {
+    ethereum_mainnet: {
+      eid: EndpointId.ETHEREUM_V2_MAINNET,
+      url: process.env.ETH_MAINNET as string,
+      accounts: [process.env.USER_PRIVATE_KEY as string],
+    },
+    ethereum_testnet: {
       eid: EndpointId.SEPOLIA_V2_TESTNET,
       url: process.env.ETH_SEPOLIA as string,
-      accounts: [process.env.ADMIN_PRIVATE_KEY as string],
-    },
-    base_sepolia: {
-      eid: EndpointId.BASESEP_V2_TESTNET,
-      url: process.env.BASE_SEPOLIA as string,
-      accounts: [process.env.ADMIN_PRIVATE_KEY as string],
-    },
-    linea_sepolia: {
-      eid: EndpointId.LINEASEP_V2_TESTNET,
-      url: process.env.LINEA_SEPOLIA as string,
-      accounts: [process.env.ADMIN_PRIVATE_KEY as string],
-    },
-    scroll_sepolia: {
-      eid: EndpointId.SCROLL_V2_TESTNET,
-      url: process.env.SCROLL_SEPOLIA as string,
       accounts: [process.env.ADMIN_PRIVATE_KEY as string],
     },
     linea_mainnet: {
@@ -47,62 +37,53 @@ const config: HardhatUserConfig = {
       url: process.env.LINEA_MAINNET as string,
       accounts: [process.env.USER_PRIVATE_KEY as string],
     },
+    linea_testnet: {
+      eid: EndpointId.LINEASEP_V2_TESTNET,
+      url: process.env.LINEA_SEPOLIA as string,
+      accounts: [process.env.ADMIN_PRIVATE_KEY as string],
+    },
     scroll_mainnet: {
-      eid: 30214,
+      eid: EndpointId.SCROLL_V2_MAINNET,
       url: process.env.SCROLL_MAINNET as string,
       accounts: [process.env.USER_PRIVATE_KEY as string],
+    },
+    scroll_testnet: {
+      eid: EndpointId.SCROLL_V2_TESTNET,
+      url: process.env.SCROLL_SEPOLIA as string,
+      accounts: [process.env.ADMIN_PRIVATE_KEY as string],
     },
     xlayer_mainnet: {
       eid: EndpointId.XLAYER_V2_MAINNET,
       url: process.env.XLAYER_MAINNET as string,
       accounts: [process.env.USER_PRIVATE_KEY as string],
     },
-    ethereum_mainnet: {
-      eid: 30101,
-      url: process.env.ETH_MAINNET as string,
+    xlayer_testnet: {
+      eid: EndpointId.XLAYER_V2_TESTNET,
+      url: process.env.XLAYER_TESTNET as string,
       accounts: [process.env.USER_PRIVATE_KEY as string],
     },
     base_mainnet: {
-      eid: 30184,
+      eid: EndpointId.BASE_MAINNET,
       url: process.env.BASE_MAINNET as string,
       accounts: [process.env.USER_PRIVATE_KEY as string],
+    },
+    base_testnet: {
+      eid: EndpointId.BASESEP_V2_TESTNET,
+      url: process.env.BASE_SEPOLIA as string,
+      accounts: [process.env.ADMIN_PRIVATE_KEY as string],
     },
   },
   etherscan: {
     apiKey: {
-      linea_sepolia: process.env.LINEASCAN_API_KEY as string,
-      scroll_sepolia: process.env.SCROLLSCAN_API_KEY as string,
       ethereum_mainnet: process.env.ETHERSCAN_API_KEY as string,
-      ethereum_sepolia: process.env.ETHERSCAN_API_KEY as string,
+      ethereum_testnet: process.env.ETHERSCAN_API_KEY as string,
       linea_mainnet: process.env.LINEASCAN_API_KEY as string,
+      linea_testnet: process.env.LINEASCAN_API_KEY as string,
       scroll_mainnet: process.env.SCROLLSCAN_API_KEY as string,
+      scroll_testnet: process.env.SCROLLSCAN_API_KEY as string,
       base_mainnet: process.env.BASESCAN_API_KEY as string,
     },
     customChains: [
-      {
-        network: 'linea_sepolia',
-        chainId: 59141,
-        urls: {
-          apiURL: 'https://api-sepolia.lineascan.build/api',
-          browserURL: 'https://sepolia.lineascan.build',
-        },
-      },
-      {
-        network: 'scroll_sepolia',
-        chainId: 534351,
-        urls: {
-          apiURL: 'https://api-sepolia.scrollscan.com/api',
-          browserURL: 'https://sepolia.scrollscan.build',
-        },
-      },
-      {
-        network: 'ethereum_sepolia',
-        chainId: 11155111,
-        urls: {
-          apiURL: 'https://api-sepolia.etherscan.io/api',
-          browserURL: 'https://sepolia.etherscan.build',
-        },
-      },
       {
         network: 'linea_mainnet',
         chainId: 59144,
@@ -112,11 +93,27 @@ const config: HardhatUserConfig = {
         },
       },
       {
+        network: 'linea_testnet',
+        chainId: 59141,
+        urls: {
+          apiURL: 'https://api-sepolia.lineascan.build/api',
+          browserURL: 'https://sepolia.lineascan.build',
+        },
+      },
+      {
         network: 'scroll_mainnet',
         chainId: 534352,
         urls: {
           apiURL: 'https://api.scrollscan.com/api',
           browserURL: 'https://scrollscan.build',
+        },
+      },
+      {
+        network: 'scroll_testnet',
+        chainId: 534351,
+        urls: {
+          apiURL: 'https://api-sepolia.scrollscan.com/api',
+          browserURL: 'https://sepolia.scrollscan.build',
         },
       },
       {

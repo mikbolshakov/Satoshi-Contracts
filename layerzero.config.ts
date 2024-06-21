@@ -1,137 +1,164 @@
 import { EndpointId } from '@layerzerolabs/lz-definitions';
 import type { OAppOmniGraphHardhat, OmniPointHardhat } from '@layerzerolabs/toolbox-hardhat';
 
-const ethSepoliaContract: OmniPointHardhat = {
+const ethMainnetContract: OmniPointHardhat = {
+  eid: EndpointId.ETHEREUM_V2_MAINNET,
+  contractName: 'CoinTest',
+};
+const ethTestnetContract: OmniPointHardhat = {
   eid: EndpointId.SEPOLIA_V2_TESTNET,
-  contractName: 'RunnerOmni',
+  contractName: 'CoinTest',
 };
 
-const baseSepoliaContract: OmniPointHardhat = {
-  eid: EndpointId.BASESEP_V2_TESTNET,
-  contractName: 'RunnerOmni',
-};
-
-const lineaSepoliaContract: OmniPointHardhat = {
-  eid: EndpointId.LINEASEP_V2_TESTNET,
-  contractName: 'RunnerOmni',
-};
-
-const scrollSepoliaContract: OmniPointHardhat = {
-  eid: EndpointId.SCROLL_V2_TESTNET,
-  contractName: 'RunnerOmni',
-};
-
-const lineaContract: OmniPointHardhat = {
+const lineaMainnetContract: OmniPointHardhat = {
   eid: 30183,
   contractName: 'CoinTest',
 };
-
-const scrollContract: OmniPointHardhat = {
-  eid: 30214,
+const lineaTestnetContract: OmniPointHardhat = {
+  eid: EndpointId.LINEASEP_V2_TESTNET,
   contractName: 'CoinTest',
 };
 
-const xlayerContract: OmniPointHardhat = {
+const scrollMainnetContract: OmniPointHardhat = {
+  eid: EndpointId.SCROLL_V2_MAINNET,
+  contractName: 'CoinTest',
+};
+const scrollTestnetContract: OmniPointHardhat = {
+  eid: EndpointId.SCROLL_V2_TESTNET,
+  contractName: 'CoinTest',
+};
+
+const xlayerMainnetContract: OmniPointHardhat = {
   eid: EndpointId.XLAYER_V2_MAINNET,
   contractName: 'CoinTest',
 };
-
-const ethereumContract: OmniPointHardhat = {
-  eid: 30101,
+const xlayerTestnetContract: OmniPointHardhat = {
+  eid: EndpointId.XLAYER_V2_TESTNET,
   contractName: 'CoinTest',
 };
 
-const baseContract: OmniPointHardhat = {
-  eid: 30184,
+const baseMainnetContract: OmniPointHardhat = {
+  eid: EndpointId.BASE_V2_MAINNET,
+  contractName: 'CoinTest',
+};
+const baseTestnetContract: OmniPointHardhat = {
+  eid: EndpointId.BASESEP_V2_TESTNET,
   contractName: 'CoinTest',
 };
 
 const config: OAppOmniGraphHardhat = {
   contracts: [
     {
-      contract: ethSepoliaContract,
+      contract: ethMainnetContract,
     },
     {
-      contract: baseSepoliaContract,
+      contract: ethTestnetContract,
     },
     {
-      contract: lineaSepoliaContract,
+      contract: lineaMainnetContract,
     },
     {
-      contract: scrollSepoliaContract,
+      contract: lineaTestnetContract,
     },
     {
-      contract: lineaContract,
+      contract: scrollMainnetContract,
     },
     {
-      contract: scrollContract,
+      contract: scrollTestnetContract,
     },
     {
-      contract: xlayerContract,
+      contract: xlayerMainnetContract,
     },
     {
-      contract: ethereumContract,
+      contract: xlayerTestnetContract,
     },
     {
-      contract: baseContract,
+      contract: baseMainnetContract,
+    },
+    {
+      contract: baseTestnetContract,
     },
   ],
   connections: [
     {
-      from: ethSepoliaContract,
-      to: baseSepoliaContract,
+      from: ethMainnetContract,
+      to: lineaMainnetContract,
     },
     {
-      from: baseSepoliaContract,
-      to: ethSepoliaContract,
+      from: ethMainnetContract,
+      to: scrollMainnetContract,
     },
     {
-      from: lineaSepoliaContract,
-      to: scrollSepoliaContract,
+      from: ethMainnetContract,
+      to: xlayerMainnetContract,
     },
     {
-      from: scrollSepoliaContract,
-      to: lineaSepoliaContract,
+      from: ethMainnetContract,
+      to: baseMainnetContract,
     },
     {
-      from: lineaContract,
-      to: scrollContract,
+      from: lineaMainnetContract,
+      to: scrollMainnetContract,
     },
     {
-      from: scrollContract,
-      to: lineaContract,
+      from: lineaMainnetContract,
+      to: xlayerMainnetContract,
     },
     {
-      from: lineaContract,
-      to: xlayerContract,
+      from: lineaMainnetContract,
+      to: baseMainnetContract,
     },
     {
-      from: xlayerContract,
-      to: lineaContract,
+      from: scrollMainnetContract,
+      to: xlayerMainnetContract,
     },
     {
-      from: scrollContract,
-      to: xlayerContract,
+      from: scrollMainnetContract,
+      to: baseMainnetContract,
     },
     {
-      from: xlayerContract,
-      to: scrollContract,
+      from: xlayerMainnetContract,
+      to: baseMainnetContract,
     },
     {
-      from: lineaContract,
-      to: ethereumContract,
+      from: ethTestnetContract,
+      to: lineaTestnetContract,
     },
     {
-      from: ethereumContract,
-      to: lineaContract,
+      from: ethTestnetContract,
+      to: scrollTestnetContract,
     },
     {
-      from: lineaContract,
-      to: baseContract,
+      from: ethTestnetContract,
+      to: xlayerTestnetContract,
     },
     {
-      from: baseContract,
-      to: lineaContract,
+      from: ethTestnetContract,
+      to: baseTestnetContract,
+    },
+    {
+      from: lineaTestnetContract,
+      to: scrollTestnetContract,
+    },
+    {
+      from: lineaTestnetContract,
+      to: xlayerTestnetContract,
+    },
+    {
+      from: lineaTestnetContract,
+      to: baseTestnetContract,
+    },
+    {
+      from: scrollTestnetContract,
+      to: xlayerTestnetContract,
+    },
+    {
+      from: scrollTestnetContract,
+      to: baseTestnetContract,
+    },
+    {
+      from: xlayerTestnetContract,
+      to: baseTestnetContract,
     },
   ],
 };
