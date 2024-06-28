@@ -336,14 +336,14 @@
       { "internalType": "address", "name": "_from", "type": "address" },
       { "internalType": "uint256", "name": "_amount", "type": "uint256" }
     ],
-    "name": "burnByAdmin",
+    "name": "burnAdmin",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "address", "name": "account", "type": "address" },
+      { "internalType": "address", "name": "to", "type": "address" },
       { "internalType": "uint256", "name": "value", "type": "uint256" }
     ],
     "name": "burnFrom",
@@ -378,6 +378,13 @@
   },
   {
     "inputs": [],
+    "name": "disableTransfer",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "eip712Domain",
     "outputs": [
       { "internalType": "bytes1", "name": "fields", "type": "bytes1" },
@@ -393,7 +400,7 @@
   },
   {
     "inputs": [],
-    "name": "enableTheTransfer",
+    "name": "enableTransfer",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -412,13 +419,6 @@
     ],
     "name": "enforcedOptions",
     "outputs": [{ "internalType": "bytes", "name": "enforcedOption", "type": "bytes" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getMintingMaintainer",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
     "stateMutability": "view",
     "type": "function"
   },
@@ -537,7 +537,7 @@
           { "internalType": "uint256", "name": "amount", "type": "uint256" },
           { "internalType": "bytes32", "name": "salt", "type": "bytes32" }
         ],
-        "internalType": "struct CoinTest.MintingParams",
+        "internalType": "struct Runner2060coin.MintingParams",
         "name": "_mintingParams",
         "type": "tuple"
       }
@@ -552,9 +552,16 @@
       { "internalType": "address", "name": "_to", "type": "address" },
       { "internalType": "uint256", "name": "_amount", "type": "uint256" }
     ],
-    "name": "mintByAdmin",
+    "name": "mintAdmin",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "mintingMaintainer",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -858,13 +865,6 @@
   },
   {
     "inputs": [],
-    "name": "stopTheTransfer",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "symbol",
     "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
     "stateMutability": "view",
@@ -910,6 +910,13 @@
     "name": "transferOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "transferStopped",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
     "type": "function"
   },
   {

@@ -149,6 +149,24 @@ describe('Runner2060coin tests', async () => {
     );
   });
 
+  it('CHECK: mints one address, receives another', async () => {
+    let mintOne = {
+      userAddress: user20.address,
+      amount: thousandTokens,
+      salt: '0x979b141b8bcd3ba17815cd76811f1fca1cabaa9d51f7c00712856970f01d6e37',
+    };
+    let signatureOne = backend.signMintMessage(mintOne);
+
+    expect(await erc20Linea.balanceOf(user10.address)).to.be.eq(thousandTokens);
+    expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(zeroAmount);
+    await erc20Linea.connect(user10).mint(signatureOne, mintOne);
+    expect(await erc20Linea.balanceOf(user10.address)).to.be.eq(thousandTokens);
+    expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(thousandTokens);
+
+    await erc20Linea.connect(adminLinea).burnAdmin(user20.address, thousandTokens);
+    expect(await erc20Linea.balanceOf(user20.address)).to.be.eq(zeroAmount);
+  });
+
   it('Mint tokens by admin', async () => {
     expect(erc20Linea.connect(user10).mintAdmin(user20.address, hundredTokens)).to.be
       .revertedWithCustomError; // onlyOwner

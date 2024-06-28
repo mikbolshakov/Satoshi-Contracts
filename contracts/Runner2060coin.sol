@@ -162,6 +162,33 @@ contract Runner2060coin is OFT, ERC20Burnable, ERC20Pausable, EIP712 {
         return true;
     }
 
+    // /// @inheritdoc ERC20
+    // function approve(address spender, uint256 value) public override returns (bool) {
+    //     require(!transferStopped || msg.sender == owner(), "Enable token transfers functionality!");
+
+    //     super.approve(spender, value);
+    //     return true;
+    // }
+
+    // /// @inheritdoc ERC20
+    // function _approve(
+    //     address _owner,
+    //     address spender,
+    //     uint256 value,
+    //     bool emitEvent
+    // ) internal override {
+    //     require(!transferStopped || msg.sender == owner(), "Enable token transfers functionality!");
+
+    //     super._approve(_owner, spender, value, emitEvent);
+    // }
+
+    // /// @inheritdoc ERC20
+    // function _spendAllowance(address _owner, address spender, uint256 value) internal override {
+    //     require(!transferStopped || msg.sender == owner(), "Enable token transfers functionality!");
+
+    //     super._spendAllowance(_owner, spender, value);
+    // }
+
     /// @inheritdoc ERC20Burnable
     function burn(uint256 value) public override onlyOwner {
         super.burn(value);
