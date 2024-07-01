@@ -56,13 +56,16 @@ async function getUniqueMintAddresses() {
       }
     });
 
+    const coinAddressesArray = Array.from(coinUniqueAddresses);
+    const rewardsAddressesArray = Array.from(rewardsUniqueAddresses);
+
     fs.writeFileSync(
-      'scripts/uniqueMinters/coinUniqueMinters.txt',
-      Array.from(coinUniqueAddresses).join('\n'),
+      'scripts/ercData/coinUniqueMinters.js',
+      `const coinUniqueMinters = ${JSON.stringify(coinAddressesArray, null, 2)};`,
     );
     fs.writeFileSync(
-      'scripts/uniqueMinters/rewardsUniqueMinters.txt',
-      Array.from(rewardsUniqueAddresses).join('\n'),
+      'scripts/ercData/rewardsUniqueMinters.js',
+      `const rewardsUniqueMinters = ${JSON.stringify(rewardsAddressesArray, null, 2)};`,
     );
 
     console.log('Unique addresses saved to files.');
