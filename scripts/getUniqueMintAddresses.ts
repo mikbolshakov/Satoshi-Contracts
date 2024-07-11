@@ -8,6 +8,8 @@ config();
 // npx ts-node scripts/getUniqueMintAddresses.ts
 const coinAddr = '0xCb2735948db0ac349075F1d8b916B6371dcCAEB9';
 const rewardsAddr = '0xdd873af53d1aDb11Acd4DfBdeC4E8a160d172Ca5';
+const coinResultPath = 'scripts/ercData/coinUniqueMinters.js';
+const rewardsResultPath = 'scripts/ercData/rewardsUniqueMinters.js';
 const rpcUrl = process.env.LINEA_MAINNET;
 
 const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
@@ -60,11 +62,11 @@ async function getUniqueMintAddresses() {
     const rewardsAddressesArray = Array.from(rewardsUniqueAddresses);
 
     fs.writeFileSync(
-      'scripts/ercData/coinUniqueMinters.js',
+      coinResultPath,
       `const coinUniqueMinters = ${JSON.stringify(coinAddressesArray, null, 2)};`,
     );
     fs.writeFileSync(
-      'scripts/ercData/rewardsUniqueMinters.js',
+      rewardsResultPath,
       `const rewardsUniqueMinters = ${JSON.stringify(rewardsAddressesArray, null, 2)};`,
     );
 

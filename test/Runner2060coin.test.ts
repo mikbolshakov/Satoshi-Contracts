@@ -103,9 +103,9 @@ describe('Runner2060coin tests', async () => {
       .setDestLzEndpoint(erc20Linea.address, mockEndpointV2Linea.address);
 
     expect(
-      erc20Linea
+      erc20Scroll
         .connect(thirdPartyDeployer)
-        .setPeer(eidScrollMainnet, ethers.utils.zeroPad(erc20Scroll.address, 32)),
+        .setPeer(eidScrollMainnet, ethers.utils.zeroPad(erc20Linea.address, 32)),
     ).to.be.revertedWithCustomError; // onlyOwner
 
     await erc20Scroll
