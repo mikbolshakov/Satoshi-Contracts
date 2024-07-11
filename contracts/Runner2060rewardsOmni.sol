@@ -359,13 +359,6 @@ contract Runner2060rewardsOmni is
         super.setApprovalForAll(operator, approved);
     }
 
-    /// @inheritdoc ERC1155
-    function _setApprovalForAll(address _owner, address operator, bool approved) internal override {
-        require(!transferStopped || msg.sender == owner(), "Enable token transfers functionality!");
-
-        super._setApprovalForAll(_owner, operator, approved);
-    }
-
     /// @inheritdoc ERC1155Burnable
     function burn(address account, uint256 id, uint256 value) public override onlyOwner {
         super.burn(account, id, value);

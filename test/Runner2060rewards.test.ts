@@ -6,82 +6,92 @@ import { Wallet } from 'ethers';
 import { joinSignature } from 'ethers/lib/utils';
 import { TypedDataUtils } from 'ethers-eip712';
 
-describe('Runner2060rewards tests', () => {
-  const fee = 750;
-  const zeroAmount = 0;
-  const tenTokens = 10;
-  const hundredTokens = 100;
-  const zeroTokenId = 0;
-  const firstTokenId = 1;
-  const secondTokenId = 2;
-  const thirdTokenId = 3;
+const fee = 750;
 
-  let nftContract: Runner2060rewards;
-  let mintMaintainer: Wallet;
+// amount
+const zeroAmount = 0;
+const tenTokens = 10;
+const hundredTokens = 100;
+
+// id
+const zeroTokenId = 0;
+const firstTokenId = 1;
+const secondTokenId = 2;
+const thirdTokenId = 3;
+
+describe('Runner2060rewards tests', () => {
+  let erc1155Linea: Runner2060rewards;
   let signers: SignerWithAddress[];
-  let admin: SignerWithAddress;
-  let user1: SignerWithAddress;
-  let user2: SignerWithAddress;
-  let user3: SignerWithAddress;
+  let mintMaintainer: Wallet;
+  let adminLinea: SignerWithAddress;
+  let user10: SignerWithAddress;
+  let user20: SignerWithAddress;
+  let user30: SignerWithAddress;
+  let thirdPartyDeployer: SignerWithAddress;
+
   let backend: BackendMock;
+
   before(async () => {
     mintMaintainer = ethers.Wallet.createRandom();
     signers = await ethers.getSigners();
-    admin = signers[0];
-    user1 = signers[1];
-    user2 = signers[2];
-    user3 = signers[3];
+    adminLinea = signers[0];
+    user10 = signers[1];
+    user20 = signers[2];
+    user30 = signers[3];
+    thirdPartyDeployer = signers[4];
   });
 
   it('Deploy contract', async () => {
     const Factory = await ethers.getContractFactory('Runner2060rewards');
-    const runner2060 = await Factory.deploy(
+    const runner2060 = await Factory.connect(thirdPartyDeployer).deploy(
       mintMaintainer.address,
-      admin.address,
+      adminLinea.address,
       fee,
-      admin.address,
+      adminLinea.address,
     );
 
     expect(runner2060.address).to.not.eq(ethers.constants.AddressZero);
-    nftContract = runner2060 as Runner2060rewards;
+    erc1155Linea = runner2060 as Runner2060rewards;
 
     const ERC2981 = '0x2a55205a';
-    expect(await nftContract.supportsInterface(ERC2981)).to.equal(true);
-    expect(await nftContract.name()).to.eq('Runner2060rewards');
-    expect(await nftContract.symbol()).to.eq('SuRunRewards');
+    expect(await erc1155Linea.supportsInterface(ERC2981)).to.equal(true);
+    expect(await erc1155Linea.name()).to.eq('Runner2060rewards');
+    expect(await erc1155Linea.symbol()).to.eq('SuRunRewards');
   });
 
   it('Set URI', async () => {
     expect(
-      nftContract.connect(user1).setURI('ipfs://QmU48M65weZGtmVUBVbj1hgfnozAsSgoKhgZ3NyGK24pMB/'),
+      erc1155Linea.connect(user10).setURI('ipfs://QmU48M65weZGtmVUBVbj1hgfnozAsSgoKhgZ3NyGK24pMB/'),
     ).to.be.revertedWithCustomError; // onlyOwner
 
-    await nftContract.setURI('ipfs://QmU48M65weZGtmVUBVbj1hgfnozAsSgoKhgZ3NyGK24pMB/');
+    await erc1155Linea
+      .connect(adminLinea)
+      .setURI('ipfs://QmU48M65weZGtmVUBVbj1hgfnozAsSgoKhgZ3NyGK24pMB/');
 
-    expect(await nftContract.uri(zeroTokenId)).to.be.eq(
+    expect(await erc1155Linea.uri(zeroTokenId)).to.be.eq(
       'ipfs://QmU48M65weZGtmVUBVbj1hgfnozAsSgoKhgZ3NyGK24pMB/0.json',
     );
 
-    expect(await nftContract.uri(firstTokenId)).to.be.eq(
+    expect(await erc1155Linea.uri(firstTokenId)).to.be.eq(
       'ipfs://QmU48M65weZGtmVUBVbj1hgfnozAsSgoKhgZ3NyGK24pMB/1.json',
     );
   });
 
   it('Enable backend', async () => {
-    backend = new BackendMock(31337, nftContract.address, mintMaintainer);
+    backend = new BackendMock(31337, erc1155Linea.address, mintMaintainer);
   });
 
   it('Set and get max supply', async () => {
-    expect(nftContract.connect(user1).setMaxSupply(firstTokenId, tenTokens)).to.be
+    expect(erc1155Linea.connect(user10).setMaxSupply(firstTokenId, tenTokens)).to.be
       .revertedWithCustomError; // onlyOwner
 
     // setMaxSupply()
-    expect(await nftContract.getMaxSupply(zeroTokenId)).to.be.eq(zeroAmount);
-    expect(await nftContract.getMaxSupply(firstTokenId)).to.be.eq(zeroAmount);
-    await nftContract.setMaxSupply(zeroTokenId, hundredTokens);
-    await nftContract.setMaxSupply(firstTokenId, tenTokens * 3);
-    expect(await nftContract.getMaxSupply(zeroTokenId)).to.be.eq(hundredTokens);
-    expect(await nftContract.getMaxSupply(firstTokenId)).to.be.eq(tenTokens * 3);
+    expect(await erc1155Linea.getMaxSupply(zeroTokenId)).to.be.eq(zeroAmount);
+    expect(await erc1155Linea.getMaxSupply(firstTokenId)).to.be.eq(zeroAmount);
+    await erc1155Linea.connect(adminLinea).setMaxSupply(zeroTokenId, hundredTokens);
+    await erc1155Linea.connect(adminLinea).setMaxSupply(firstTokenId, tenTokens * 3);
+    expect(await erc1155Linea.getMaxSupply(zeroTokenId)).to.be.eq(hundredTokens);
+    expect(await erc1155Linea.getMaxSupply(firstTokenId)).to.be.eq(tenTokens * 3);
 
     // Check: Exceeds max supply
     const mintOne = {
@@ -91,11 +101,11 @@ describe('Runner2060rewards tests', () => {
     };
     const signatureOne = backend.signMintMessage(mintOne);
 
-    expect(await nftContract.balanceOf(user1.address, firstTokenId)).to.be.eq(zeroAmount);
-    await expect(nftContract.connect(user1).mint(signatureOne, mintOne)).to.be.revertedWith(
+    expect(await erc1155Linea.balanceOf(user10.address, firstTokenId)).to.be.eq(zeroAmount);
+    await expect(erc1155Linea.connect(user10).mint(signatureOne, mintOne)).to.be.revertedWith(
       'Exceeds max supply',
     );
-    expect(await nftContract.balanceOf(user1.address, firstTokenId)).to.be.eq(zeroAmount);
+    expect(await erc1155Linea.balanceOf(user10.address, firstTokenId)).to.be.eq(zeroAmount);
 
     // Check: Exceeds max supply (Batch mint)
     const mintTwo = {
@@ -105,17 +115,17 @@ describe('Runner2060rewards tests', () => {
     };
     const signatureTwo = backend.signBatchMintMessage(mintTwo);
 
-    expect(await nftContract.balanceOf(user3.address, zeroTokenId)).to.be.eq(zeroAmount);
-    expect(await nftContract.balanceOf(user3.address, firstTokenId)).to.be.eq(zeroAmount);
-    expect(await nftContract.balanceOf(user3.address, secondTokenId)).to.be.eq(zeroAmount);
+    expect(await erc1155Linea.balanceOf(user30.address, zeroTokenId)).to.be.eq(zeroAmount);
+    expect(await erc1155Linea.balanceOf(user30.address, firstTokenId)).to.be.eq(zeroAmount);
+    expect(await erc1155Linea.balanceOf(user30.address, secondTokenId)).to.be.eq(zeroAmount);
 
-    await expect(nftContract.connect(user3).mintBatch(signatureTwo, mintTwo)).to.be.revertedWith(
+    await expect(erc1155Linea.connect(user30).mintBatch(signatureTwo, mintTwo)).to.be.revertedWith(
       'Exceeds max supply',
     );
 
-    expect(await nftContract.balanceOf(user3.address, zeroTokenId)).to.be.eq(zeroAmount);
-    expect(await nftContract.balanceOf(user3.address, firstTokenId)).to.be.eq(zeroAmount);
-    expect(await nftContract.balanceOf(user3.address, secondTokenId)).to.be.eq(zeroAmount);
+    expect(await erc1155Linea.balanceOf(user30.address, zeroTokenId)).to.be.eq(zeroAmount);
+    expect(await erc1155Linea.balanceOf(user30.address, firstTokenId)).to.be.eq(zeroAmount);
+    expect(await erc1155Linea.balanceOf(user30.address, secondTokenId)).to.be.eq(zeroAmount);
   });
 
   it('Mint tokens by user', async () => {
@@ -127,17 +137,17 @@ describe('Runner2060rewards tests', () => {
     };
     const signatureOne = backend.signMintMessage(mintOne);
 
-    expect(await nftContract.balanceOf(user1.address, zeroTokenId)).to.be.eq(zeroAmount);
+    expect(await erc1155Linea.balanceOf(user10.address, zeroTokenId)).to.be.eq(zeroAmount);
 
     // mint()
-    await nftContract.connect(user1).mint(signatureOne, mintOne);
+    await erc1155Linea.connect(user10).mint(signatureOne, mintOne);
 
-    expect(await nftContract.balanceOf(user1.address, zeroTokenId)).to.be.eq(tenTokens);
-    expect(await nftContract.uri(zeroTokenId)).to.be.eq(
+    expect(await erc1155Linea.balanceOf(user10.address, zeroTokenId)).to.be.eq(tenTokens);
+    expect(await erc1155Linea.uri(zeroTokenId)).to.be.eq(
       'ipfs://QmU48M65weZGtmVUBVbj1hgfnozAsSgoKhgZ3NyGK24pMB/0.json',
     );
 
-    await expect(nftContract.connect(user1).mint(signatureOne, mintOne)).to.be.revertedWith(
+    await expect(erc1155Linea.connect(user10).mint(signatureOne, mintOne)).to.be.revertedWith(
       'This message has already been executed!',
     );
 
@@ -156,95 +166,107 @@ describe('Runner2060rewards tests', () => {
       salt: '0x111b141b8bcd3ba17815cd76811f1fca1cabaa9d51f7c00712606970f01d6e11',
     };
 
-    await expect(nftContract.connect(user1).mint(signatureTwo, mintThree)).to.be.revertedWith(
+    await expect(erc1155Linea.connect(user10).mint(signatureTwo, mintThree)).to.be.revertedWith(
       'Maintainer did not sign this message!',
     );
   });
 
-  it('Mint tokens by admin', async () => {
-    expect(nftContract.connect(user1).mintAdmin(admin.address, firstTokenId, hundredTokens)).to.be
-      .revertedWithCustomError; // onlyOwner
+  it('Mint tokens by adminLinea', async () => {
+    expect(erc1155Linea.connect(user10).mintAdmin(adminLinea.address, firstTokenId, hundredTokens))
+      .to.be.revertedWithCustomError; // onlyOwner
 
-    expect(await nftContract.balanceOf(admin.address, firstTokenId)).to.be.eq(zeroAmount);
-    await nftContract.connect(admin).mintAdmin(admin.address, firstTokenId, tenTokens);
-    expect(await nftContract.balanceOf(admin.address, firstTokenId)).to.be.eq(tenTokens);
+    expect(await erc1155Linea.balanceOf(adminLinea.address, firstTokenId)).to.be.eq(zeroAmount);
+    await erc1155Linea.connect(adminLinea).mintAdmin(adminLinea.address, firstTokenId, tenTokens);
+    expect(await erc1155Linea.balanceOf(adminLinea.address, firstTokenId)).to.be.eq(tenTokens);
   });
 
   it('Enable token transfers', async () => {
     await expect(
-      nftContract.connect(user1).safeTransferFrom(user1.address, user2.address, 0, 100, '0x'),
+      erc1155Linea.connect(user10).safeTransferFrom(user10.address, user20.address, 0, 100, '0x'),
     ).to.be.revertedWith('Enable token transfers functionality!');
-    expect(nftContract.connect(user1).enableTransfer()).to.be.revertedWithCustomError; // onlyOwner
+    expect(erc1155Linea.connect(user10).enableTransfer()).to.be.revertedWithCustomError; // onlyOwner
 
     // enableTransfer()
-    await nftContract.connect(admin).enableTransfer();
+    await erc1155Linea.connect(adminLinea).enableTransfer();
   });
 
   it('Transfer token when Enabled', async () => {
-    expect(await nftContract.balanceOf(user1.address, zeroTokenId)).to.be.eq(tenTokens);
-    expect(await nftContract.balanceOf(user2.address, zeroTokenId)).to.be.eq(zeroAmount);
-    await nftContract
-      .connect(user1)
-      .safeTransferFrom(user1.address, user2.address, zeroTokenId, tenTokens, '0x');
+    expect(await erc1155Linea.balanceOf(user10.address, zeroTokenId)).to.be.eq(tenTokens);
+    expect(await erc1155Linea.balanceOf(user20.address, zeroTokenId)).to.be.eq(zeroAmount);
+    await erc1155Linea
+      .connect(user10)
+      .safeTransferFrom(user10.address, user20.address, zeroTokenId, tenTokens, '0x');
 
-    expect(await nftContract.balanceOf(user1.address, zeroTokenId)).to.be.eq(zeroAmount);
-    expect(await nftContract.balanceOf(user2.address, zeroTokenId)).to.be.eq(tenTokens);
+    expect(await erc1155Linea.balanceOf(user10.address, zeroTokenId)).to.be.eq(zeroAmount);
+    expect(await erc1155Linea.balanceOf(user20.address, zeroTokenId)).to.be.eq(tenTokens);
 
-    await nftContract
-      .connect(user2)
-      .safeBatchTransferFrom(user2.address, user1.address, [zeroTokenId], [tenTokens], '0x');
+    await erc1155Linea
+      .connect(user20)
+      .safeBatchTransferFrom(user20.address, user10.address, [zeroTokenId], [tenTokens], '0x');
 
-    expect(await nftContract.balanceOf(user1.address, zeroTokenId)).to.be.eq(tenTokens);
-    expect(await nftContract.balanceOf(user2.address, zeroTokenId)).to.be.eq(zeroAmount);
+    expect(await erc1155Linea.balanceOf(user10.address, zeroTokenId)).to.be.eq(tenTokens);
+    expect(await erc1155Linea.balanceOf(user20.address, zeroTokenId)).to.be.eq(zeroAmount);
   });
 
   it('Disable token transfers', async () => {
-    expect(nftContract.connect(user1).disableTransfer()).to.be.revertedWithCustomError; // onlyOwner
+    expect(erc1155Linea.connect(user10).disableTransfer()).to.be.revertedWithCustomError; // onlyOwner
 
     // disableTransfer()
-    await nftContract.connect(admin).disableTransfer();
+    await erc1155Linea.connect(adminLinea).disableTransfer();
 
     await expect(
-      nftContract
-        .connect(user1)
-        .safeTransferFrom(user1.address, admin.address, firstTokenId, hundredTokens, '0x'),
+      erc1155Linea
+        .connect(user10)
+        .safeTransferFrom(user10.address, adminLinea.address, firstTokenId, hundredTokens, '0x'),
     ).to.be.revertedWith('Enable token transfers functionality!');
     await expect(
-      nftContract
-        .connect(user1)
-        .safeBatchTransferFrom(user1.address, admin.address, [firstTokenId], [hundredTokens], '0x'),
+      erc1155Linea
+        .connect(user10)
+        .safeBatchTransferFrom(
+          user10.address,
+          adminLinea.address,
+          [firstTokenId],
+          [hundredTokens],
+          '0x',
+        ),
     ).to.be.revertedWith('Enable token transfers functionality!');
   });
 
   it('Transfer token when Disabled', async () => {
-    expect(await nftContract.balanceOf(admin.address, firstTokenId)).to.be.eq(tenTokens);
-    expect(await nftContract.balanceOf(user2.address, firstTokenId)).to.be.eq(zeroAmount);
+    expect(await erc1155Linea.balanceOf(adminLinea.address, firstTokenId)).to.be.eq(tenTokens);
+    expect(await erc1155Linea.balanceOf(user20.address, firstTokenId)).to.be.eq(zeroAmount);
 
-    await nftContract
-      .connect(admin)
-      .safeTransferFrom(admin.address, user2.address, firstTokenId, tenTokens / 2, '0x');
+    await erc1155Linea
+      .connect(adminLinea)
+      .safeTransferFrom(adminLinea.address, user20.address, firstTokenId, tenTokens / 2, '0x');
 
-    expect(await nftContract.balanceOf(admin.address, firstTokenId)).to.be.eq(tenTokens / 2);
-    expect(await nftContract.balanceOf(user2.address, firstTokenId)).to.be.eq(tenTokens / 2);
+    expect(await erc1155Linea.balanceOf(adminLinea.address, firstTokenId)).to.be.eq(tenTokens / 2);
+    expect(await erc1155Linea.balanceOf(user20.address, firstTokenId)).to.be.eq(tenTokens / 2);
 
-    await nftContract
-      .connect(admin)
-      .safeBatchTransferFrom(admin.address, user2.address, [firstTokenId], [tenTokens / 2], '0x');
+    await erc1155Linea
+      .connect(adminLinea)
+      .safeBatchTransferFrom(
+        adminLinea.address,
+        user20.address,
+        [firstTokenId],
+        [tenTokens / 2],
+        '0x',
+      );
 
-    expect(await nftContract.balanceOf(admin.address, firstTokenId)).to.be.eq(zeroAmount);
-    expect(await nftContract.balanceOf(user2.address, firstTokenId)).to.be.eq(tenTokens);
+    expect(await erc1155Linea.balanceOf(adminLinea.address, firstTokenId)).to.be.eq(zeroAmount);
+    expect(await erc1155Linea.balanceOf(user20.address, firstTokenId)).to.be.eq(tenTokens);
 
-    await nftContract.connect(admin).enableTransfer();
-    await nftContract
-      .connect(user2)
-      .safeTransferFrom(user2.address, admin.address, firstTokenId, tenTokens, '0x');
+    await erc1155Linea.connect(adminLinea).enableTransfer();
+    await erc1155Linea
+      .connect(user20)
+      .safeTransferFrom(user20.address, adminLinea.address, firstTokenId, tenTokens, '0x');
   });
 
   it('Pause and unpause contract', async () => {
-    expect(nftContract.connect(user1).pause()).to.be.revertedWithCustomError; // onlyOwner
+    expect(erc1155Linea.connect(user10).pause()).to.be.revertedWithCustomError; // onlyOwner
 
     // pause()
-    await nftContract.pause();
+    await erc1155Linea.connect(adminLinea).pause();
 
     // Check: EnforcedPause()
     const mintOne = {
@@ -254,26 +276,26 @@ describe('Runner2060rewards tests', () => {
     };
     const signatureOne = backend.signMintMessage(mintOne);
 
-    expect(await nftContract.balanceOf(user1.address, zeroTokenId)).to.be.eq(tenTokens);
+    expect(await erc1155Linea.balanceOf(user10.address, zeroTokenId)).to.be.eq(tenTokens);
     await expect(
-      nftContract
-        .connect(user1)
-        .safeTransferFrom(user1.address, user2.address, zeroTokenId, tenTokens, []),
+      erc1155Linea
+        .connect(user10)
+        .safeTransferFrom(user10.address, user20.address, zeroTokenId, tenTokens, []),
     ).to.be.rejectedWith('EnforcedPause()');
-    await expect(nftContract.connect(user1).mint(signatureOne, mintOne)).to.be.rejectedWith(
+    await expect(erc1155Linea.connect(user10).mint(signatureOne, mintOne)).to.be.rejectedWith(
       'EnforcedPause()',
     );
-    expect(await nftContract.balanceOf(user1.address, zeroTokenId)).to.be.eq(tenTokens);
+    expect(await erc1155Linea.balanceOf(user10.address, zeroTokenId)).to.be.eq(tenTokens);
 
-    expect(nftContract.connect(user1).unpause()).to.be.revertedWithCustomError; // onlyOwner
+    expect(erc1155Linea.connect(user10).unpause()).to.be.revertedWithCustomError; // onlyOwner
 
     // unpause()
-    await nftContract.unpause();
+    await erc1155Linea.connect(adminLinea).unpause();
 
     // mint()
-    expect(await nftContract.balanceOf(user2.address, zeroTokenId)).to.be.eq(zeroAmount);
-    await nftContract.connect(user2).mint(signatureOne, mintOne);
-    expect(await nftContract.balanceOf(user2.address, zeroTokenId)).to.be.eq(tenTokens);
+    expect(await erc1155Linea.balanceOf(user20.address, zeroTokenId)).to.be.eq(zeroAmount);
+    await erc1155Linea.connect(user20).mint(signatureOne, mintOne);
+    expect(await erc1155Linea.balanceOf(user20.address, zeroTokenId)).to.be.eq(tenTokens);
   });
 
   it('Mint Batch tokens by user', async () => {
@@ -293,63 +315,67 @@ describe('Runner2060rewards tests', () => {
     };
     const signatureTwo = backend.signBatchMintMessage(mintTwo);
 
-    expect(await nftContract.balanceOf(user3.address, zeroTokenId)).to.be.eq(zeroAmount);
-    expect(await nftContract.balanceOf(user3.address, firstTokenId)).to.be.eq(zeroAmount);
-    expect(await nftContract.balanceOf(user3.address, secondTokenId)).to.be.eq(zeroAmount);
+    expect(await erc1155Linea.balanceOf(user30.address, zeroTokenId)).to.be.eq(zeroAmount);
+    expect(await erc1155Linea.balanceOf(user30.address, firstTokenId)).to.be.eq(zeroAmount);
+    expect(await erc1155Linea.balanceOf(user30.address, secondTokenId)).to.be.eq(zeroAmount);
 
     // mintBatch()
-    await nftContract.connect(user3).mintBatch(signatureTwo, mintTwo);
+    await erc1155Linea.connect(user30).mintBatch(signatureTwo, mintTwo);
 
-    expect(await nftContract.balanceOf(user3.address, zeroTokenId)).to.be.eq(tenTokens);
-    expect(await nftContract.balanceOf(user3.address, firstTokenId)).to.be.eq(tenTokens);
-    expect(await nftContract.balanceOf(user3.address, secondTokenId)).to.be.eq(tenTokens);
-    await expect(nftContract.connect(user3).mintBatch(signatureOne, mintTwo)).to.be.revertedWith(
+    expect(await erc1155Linea.balanceOf(user30.address, zeroTokenId)).to.be.eq(tenTokens);
+    expect(await erc1155Linea.balanceOf(user30.address, firstTokenId)).to.be.eq(tenTokens);
+    expect(await erc1155Linea.balanceOf(user30.address, secondTokenId)).to.be.eq(tenTokens);
+    await expect(erc1155Linea.connect(user30).mintBatch(signatureOne, mintTwo)).to.be.revertedWith(
       'Maintainer did not sign this message!',
     );
-    await expect(nftContract.connect(user3).mintBatch(signatureTwo, mintTwo)).to.be.revertedWith(
+    await expect(erc1155Linea.connect(user30).mintBatch(signatureTwo, mintTwo)).to.be.revertedWith(
       'This message has already been executed!',
     );
 
-    expect(await nftContract.uri(firstTokenId)).to.be.eq(
+    expect(await erc1155Linea.uri(firstTokenId)).to.be.eq(
       'ipfs://QmU48M65weZGtmVUBVbj1hgfnozAsSgoKhgZ3NyGK24pMB/1.json',
     );
-    expect(await nftContract.uri(secondTokenId)).to.be.eq(
+    expect(await erc1155Linea.uri(secondTokenId)).to.be.eq(
       'ipfs://QmU48M65weZGtmVUBVbj1hgfnozAsSgoKhgZ3NyGK24pMB/2.json',
     );
   });
 
-  it('Burn tokens by admin', async () => {
+  it('Burn tokens by adminLinea', async () => {
     // burnAdmin()
-    expect(nftContract.connect(user1).burnAdmin(user3.address, firstTokenId, tenTokens)).to.be
+    expect(erc1155Linea.connect(user10).burnAdmin(user30.address, firstTokenId, tenTokens)).to.be
       .revertedWithCustomError; // onlyOwner
-    expect(await nftContract.balanceOf(user3.address, firstTokenId)).to.be.eq(tenTokens);
-    await nftContract.connect(admin).burnAdmin(user3.address, firstTokenId, tenTokens);
-    expect(await nftContract.balanceOf(user3.address, firstTokenId)).to.be.eq(zeroAmount);
+    expect(await erc1155Linea.balanceOf(user30.address, firstTokenId)).to.be.eq(tenTokens);
+    await erc1155Linea.connect(adminLinea).burnAdmin(user30.address, firstTokenId, tenTokens);
+    expect(await erc1155Linea.balanceOf(user30.address, firstTokenId)).to.be.eq(zeroAmount);
 
     // burn()
-    expect(nftContract.connect(user1).burn(user3.address, firstTokenId, tenTokens)).to.be
+    expect(erc1155Linea.connect(user10).burn(user30.address, firstTokenId, tenTokens)).to.be
       .revertedWithCustomError; // onlyOwner
-    // await nftContract.connect(admin).mintAdmin(admin.address, firstTokenId, hundredTokens);
-    expect(await nftContract.balanceOf(admin.address, firstTokenId)).to.be.eq(tenTokens);
-    await nftContract.connect(admin).burn(admin.address, firstTokenId, tenTokens);
-    expect(await nftContract.balanceOf(admin.address, firstTokenId)).to.be.eq(zeroAmount);
+    // await erc1155Linea.connect(adminLinea).mintAdmin(adminLinea.address, firstTokenId, hundredTokens);
+    expect(await erc1155Linea.balanceOf(adminLinea.address, firstTokenId)).to.be.eq(tenTokens);
+    await erc1155Linea.connect(adminLinea).burn(adminLinea.address, firstTokenId, tenTokens);
+    expect(await erc1155Linea.balanceOf(adminLinea.address, firstTokenId)).to.be.eq(zeroAmount);
 
     // burnBatch()
-    expect(nftContract.connect(user1).burnBatch(user3.address, [firstTokenId], [tenTokens])).to.be
-      .revertedWithCustomError; // onlyOwner
-    await nftContract.connect(admin).mintAdmin(admin.address, firstTokenId, hundredTokens);
-    expect(await nftContract.balanceOf(admin.address, firstTokenId)).to.be.eq(hundredTokens);
-    await nftContract.connect(admin).burnBatch(admin.address, [firstTokenId], [hundredTokens]);
-    expect(await nftContract.balanceOf(admin.address, firstTokenId)).to.be.eq(zeroAmount);
+    expect(erc1155Linea.connect(user10).burnBatch(user30.address, [firstTokenId], [tenTokens])).to
+      .be.revertedWithCustomError; // onlyOwner
+    await erc1155Linea
+      .connect(adminLinea)
+      .mintAdmin(adminLinea.address, firstTokenId, hundredTokens);
+    expect(await erc1155Linea.balanceOf(adminLinea.address, firstTokenId)).to.be.eq(hundredTokens);
+    await erc1155Linea
+      .connect(adminLinea)
+      .burnBatch(adminLinea.address, [firstTokenId], [hundredTokens]);
+    expect(await erc1155Linea.balanceOf(adminLinea.address, firstTokenId)).to.be.eq(zeroAmount);
   });
 
   it('Set mint maintainer', async () => {
-    expect(nftContract.connect(user1).setMintingMaintainer(user2.address)).to.be
+    expect(erc1155Linea.connect(user10).setMintingMaintainer(user20.address)).to.be
       .revertedWithCustomError; // onlyOwner
 
-    expect(await nftContract.mintingMaintainer()).to.be.eq(mintMaintainer.address);
-    await nftContract.setMintingMaintainer(user2.address);
-    expect(await nftContract.mintingMaintainer()).to.be.eq(user2.address);
+    expect(await erc1155Linea.mintingMaintainer()).to.be.eq(mintMaintainer.address);
+    await erc1155Linea.connect(adminLinea).setMintingMaintainer(user20.address);
+    expect(await erc1155Linea.mintingMaintainer()).to.be.eq(user20.address);
   });
 });
 
