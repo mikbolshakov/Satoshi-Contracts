@@ -81,8 +81,6 @@ describe('FirstThirdPartyOmni tests', () => {
     );
     const runner2060Scroll = await FactoryRunner2060rewardsOmni.connect(thirdPartyDeployer).deploy(
       mintMaintainer.address,
-      adminScroll.address,
-      fee,
       mockEndpointV2Scroll.address,
       adminScroll.address,
     );

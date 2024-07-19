@@ -7,8 +7,6 @@ import { joinSignature } from 'ethers/lib/utils';
 import { TypedDataUtils } from 'ethers-eip712';
 import { Options } from '@layerzerolabs/lz-v2-utilities';
 
-const fee = 750;
-
 // amount
 const zeroAmount = 0;
 const tenTokens = 10;
@@ -73,15 +71,11 @@ describe('Runner2060rewardsOmni tests', () => {
 
     const runner2060Linea = await Factory.connect(thirdPartyDeployer).deploy(
       mintMaintainer.address,
-      adminLinea.address,
-      fee,
       mockEndpointV2Linea.address,
       adminLinea.address,
     );
     const runner2060Scroll = await Factory.connect(thirdPartyDeployer).deploy(
       mintMaintainer.address,
-      adminScroll.address,
-      fee,
       mockEndpointV2Scroll.address,
       adminScroll.address,
     );
@@ -94,8 +88,8 @@ describe('Runner2060rewardsOmni tests', () => {
     erc1155Linea = runner2060Linea as Runner2060rewardsOmni;
     erc1155Scroll = runner2060Scroll as Runner2060rewardsOmni;
 
-    const ERC2981 = '0x2a55205a';
-    expect(await erc1155Linea.supportsInterface(ERC2981)).to.equal(true);
+    const ERC1155 = '0xd9b67a26';
+    expect(await erc1155Linea.supportsInterface(ERC1155)).to.equal(true);
     expect(await erc1155Linea.name()).to.eq('Runner2060rewards');
     expect(await erc1155Linea.symbol()).to.eq('SuRunRewards');
   });
