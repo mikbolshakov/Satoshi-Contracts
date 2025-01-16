@@ -235,7 +235,7 @@ describe('Runner2060Morph tests', () => {
         ),
     ).to.be.revertedWith('Enable token transfers functionality!');
     await expect(
-        erc1155Morph.connect(user10).setApprovalForAll(user20.address, true),
+      erc1155Morph.connect(user10).setApprovalForAll(user20.address, true),
     ).to.be.revertedWith('Enable token transfers functionality!');
   });
 

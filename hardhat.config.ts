@@ -17,7 +17,7 @@ const config: HardhatUserConfig = {
             enabled: true,
             runs: 200,
           },
-            evmVersion: 'cancun',
+          evmVersion: 'cancun',
         },
       },
     ],
@@ -73,6 +73,10 @@ const config: HardhatUserConfig = {
       url: process.env.BASE_SEPOLIA as string,
       accounts: [process.env.ADMIN_PRIVATE_KEY as string],
     },
+    morph_testnet: {
+      url: process.env.MORPH_TESTNET as string,
+      accounts: [process.env.USER_PRIVATE_KEY as string],
+    },
   },
   etherscan: {
     apiKey: {
@@ -83,6 +87,7 @@ const config: HardhatUserConfig = {
       scroll_mainnet: process.env.SCROLLSCAN_API_KEY as string,
       scroll_testnet: process.env.SCROLLSCAN_API_KEY as string,
       base_mainnet: process.env.BASESCAN_API_KEY as string,
+      morph_testnet: 'anything',
     },
     customChains: [
       {
@@ -123,6 +128,14 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: 'https://api.basescan.com/api',
           browserURL: 'https://basescan.build',
+        },
+      },
+      {
+        network: 'morph_testnet',
+        chainId: 2810,
+        urls: {
+          apiURL: 'https://explorer-api-holesky.morphl2.io/api? ',
+          browserURL: 'https://explorer-holesky.morphl2.io/',
         },
       },
     ],
